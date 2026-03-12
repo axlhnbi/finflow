@@ -1,0 +1,49 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="transparent-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login" text="" color="primary"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding register-content">
+  <div class="register-container">
+    
+    <div class="header-section">
+      <h1>Buat Akun Baru 🚀</h1>
+      <p>Mulai perjalanan finansialmu hari ini.</p>
+    </div>
+
+    <div class="form-section">
+      
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
+        <ion-input type="text" placeholder="Nama Lengkap"></ion-input>
+      </ion-item>
+
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
+        <ion-input type="email" placeholder="Email Address"></ion-input>
+      </ion-item>
+
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
+        <ion-input type="password" placeholder="Password"></ion-input>
+      </ion-item>
+
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="shield-checkmark-outline" slot="start" color="medium"></ion-icon>
+        <ion-input type="password" placeholder="Konfirmasi Password"></ion-input>
+      </ion-item>
+
+      <ion-button expand="block" class="register-btn" shape="round" (click)="doRegister()">
+        Daftar & Mulai
+      </ion-button>
+    </div>
+
+    <div class="footer-section">
+      <p>Sudah punya akun? <a routerLink="/login">Masuk di sini</a></p>
+    </div>
+
+  </div>
+</ion-content>

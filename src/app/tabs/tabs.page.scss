@@ -1,1 +1,43 @@
+/* --- MODERN FLOATING TAB BAR --- */
+.custom-tab-bar {
+  /* Menghilangkan border bawaan Ionic */
+  border-top: none;
+  --border: 0;
+  
+  /* Memberikan efek melayang dan transparan */
+  background: var(--ion-item-background, #ffffff);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+  padding-bottom: var(--ion-safe-area-bottom, 0px);
+  height: 65px;
+  
+  ion-tab-button {
+    --color: var(--ion-color-medium);
+    --color-selected: var(--ion-color-primary);
+    background: transparent;
+    transition: all 0.3s ease;
 
+    ion-icon {
+      font-size: 1.5rem;
+      margin-bottom: 4px;
+      transition: transform 0.2s ease;
+    }
+
+    ion-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* Efek membesar (scaling) kecil saat tab aktif */
+    &[aria-selected="true"] ion-icon {
+      transform: scale(1.15);
+    }
+  }
+}
+
+/* --- DARK MODE ADJUSTMENTS --- */
+html.ion-palette-dark {
+  .custom-tab-bar {
+    background: #1f1f1f;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
+  }
+}

@@ -1,0 +1,58 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="custom-toolbar"><div class="header-title"><h2>{{ t.PROFILE }} ⚙️</h2><p>{{ t.PROFILE_DESC }}</p></div></ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding custom-content">
+  <div class="profile-card" *ngIf="userProfile$ | async as user">
+    <ion-avatar class="profile-avatar"><img [src]="user.avatarUrl" /></ion-avatar>
+    <div class="profile-info"><h2>{{ user.name }}</h2><p>{{ user.email }}</p></div>
+    <ion-button fill="clear" shape="round" color="primary" class="edit-btn" (click)="openProfileEdit()"><ion-icon name="create-outline"></ion-icon></ion-button>
+  </div>
+
+  <div class="settings-section">
+    <h3 class="section-title">{{ t.PREFERENCES }}</h3>
+    <ion-list lines="none" class="settings-list">
+      <ion-item class="settings-item"><div slot="start" class="icon-box dark-box"><ion-icon name="moon"></ion-icon></div><ion-label>{{ t.DARK_MODE }}</ion-label><ion-toggle slot="end" mode="ios" color="primary" [(ngModel)]="isDarkMode" (ionChange)="toggleTheme($event)"></ion-toggle></ion-item>
+      <ion-item class="settings-item" button detail="false" (click)="changeCurrency()"><div slot="start" class="icon-box warning-box"><ion-icon name="cash"></ion-icon></div><ion-label>{{ t.CURRENCY }}</ion-label><ion-note slot="end">{{ currency$ | async }}</ion-note><ion-icon name="chevron-forward" slot="end" color="medium" style="margin-left: 8px;"></ion-icon></ion-item>
+      <ion-item class="settings-item" button detail="false" (click)="changeLanguage()"><div slot="start" class="icon-box info-box" style="background: rgba(var(--ion-color-secondary-rgb), 0.15); color: var(--ion-color-secondary);"><ion-icon name="language"></ion-icon></div><ion-label>{{ t.LANGUAGE }}</ion-label><ion-note slot="end">{{ currentLang === 'id' ? 'Indonesia' : 'English' }}</ion-note><ion-icon name="chevron-forward" slot="end" color="medium" style="margin-left: 8px;"></ion-icon></ion-item>
+      <ion-item class="settings-item" button detail="false" (click)="openCategoryList()"><div slot="start" class="icon-box primary-box"><ion-icon name="grid"></ion-icon></div><ion-label>{{ t.MANAGE_CAT }}</ion-label><ion-icon name="chevron-forward" slot="end" color="medium"></ion-icon></ion-item>
+    </ion-list>
+  </div>
+
+  <div class="settings-section">
+    <h3 class="section-title">{{ t.DATA_SEC }}</h3>
+    <ion-list lines="none" class="settings-list">
+      <ion-item class="settings-item" button detail="false" (click)="exportData()"><div slot="start" class="icon-box success-box"><ion-icon name="download"></ion-icon></div><ion-label>{{ t.EXPORT }}</ion-label><ion-icon name="chevron-forward" slot="end" color="medium"></ion-icon></ion-item>
+      <ion-item class="settings-item" button detail="false" (click)="confirmReset()"><div slot="start" class="icon-box danger-box"><ion-icon name="trash"></ion-icon></div><ion-label color="danger">{{ t.RESET }}</ion-label></ion-item>
+      <ion-item class="settings-item" button detail="false" (click)="confirmLogout()" style="margin-top: 20px;"><div slot="start" class="icon-box danger-box"><ion-icon name="log-out"></ion-icon></div><ion-label color="danger">{{ t.LOGOUT }}</ion-label></ion-item>
+    </ion-list>
+  </div>
+
+  <ion-modal #profileModal [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 0.9]">
+    <ng-template>
+      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-buttons slot="start"><ion-button color="medium" (click)="profileModal.dismiss()">{{ t.CANCEL }}</ion-button></ion-buttons><ion-title class="ion-text-center">{{ t.EDIT }} {{ t.PROFILE }}</ion-title><ion-buttons slot="end"><ion-button color="primary" (click)="saveProfile()" style="font-weight: bold;">{{ t.SAVE }}</ion-button></ion-buttons></ion-toolbar></ion-header>
+      <ion-content class="ion-padding modal-content"><div class="form-details"><ion-item class="custom-form-item" lines="none"><ion-label position="stacked">Email</ion-label><ion-input type="email" [value]="currentUserEmail" readonly></ion-input></ion-item><ion-item class="custom-form-item" lines="none"><ion-label position="stacked">Nama Lengkap</ion-label><ion-input type="text" [(ngModel)]="editName"></ion-input></ion-item><ion-item class="custom-form-item" lines="none"><ion-label position="stacked">URL Avatar</ion-label><ion-input type="url" [(ngModel)]="editAvatarUrl"></ion-input></ion-item></div></ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal #categoryListModal>
+    <ng-template>
+      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-title class="ion-text-center">{{ t.MANAGE_CAT }}</ion-title><ion-buttons slot="end"><ion-button color="primary" (click)="categoryListModal.dismiss()">{{ t.CLOSE }}</ion-button></ion-buttons></ion-toolbar><ion-toolbar class="segment-toolbar"><ion-segment [(ngModel)]="currentFilter" (ionChange)="onFilterChange()" mode="ios" class="custom-segment" style="margin: 0 15px;"><ion-segment-button value="expense"><ion-label>{{ t.EXPENSE }}</ion-label></ion-segment-button><ion-segment-button value="income"><ion-label>{{ t.INCOME }}</ion-label></ion-segment-button></ion-segment></ion-toolbar></ion-header>
+      <ion-content class="ion-padding modal-content">
+        <div class="modal-header-desc"><ion-icon name="pie-chart-outline"></ion-icon><p>{{ t.CAT_DESC }}</p></div>
+        <div *ngIf="(filteredCategories$ | async)?.length === 0" class="ion-text-center ion-padding" style="color: var(--ion-color-medium);"><p>{{ t.NO_DATA }}</p></div>
+        <ion-list lines="none" class="selection-list">
+          <ion-item class="category-card" *ngFor="let cat of filteredCategories$ | async">
+            <div slot="start" class="icon-box" [ngClass]="cat.colorClass"><ion-icon [name]="cat.icon"></ion-icon></div>
+            <ion-label class="category-label"><h2>{{ cat.name }}</h2><div class="budget-badge" *ngIf="cat.type === 'expense' && cat.budget > 0"><ion-icon name="wallet"></ion-icon><span>{{ cat.budget | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}</span></div><div class="budget-badge no-limit" *ngIf="cat.type === 'expense' && (!cat.budget || cat.budget === 0)"><ion-icon name="infinite"></ion-icon><span>{{ t.NO_LIMIT }}</span></div><div class="budget-badge no-limit" *ngIf="cat.type === 'income'" style="background: rgba(var(--ion-color-success-rgb), 0.15); color: var(--ion-color-success);"><ion-icon name="arrow-down"></ion-icon><span>{{ t.INCOME }}</span></div></ion-label>
+            <div slot="end" class="action-buttons"><button class="action-btn edit-btn" (click)="editCategory(cat)"><ion-icon name="create-outline"></ion-icon></button><button class="action-btn delete-btn" (click)="deleteCategory(cat.id)"><ion-icon name="trash-outline"></ion-icon></button></div>
+          </ion-item>
+        </ion-list>
+        <ion-fab vertical="bottom" horizontal="end" slot="fixed"><ion-fab-button (click)="openAddCategory()"><ion-icon name="add"></ion-icon></ion-fab-button></ion-fab>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal #categoryFormModal [initialBreakpoint]="0.9" [breakpoints]="[0, 0.9, 1]"><ng-template><ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-buttons slot="start"><ion-button color="medium" (click)="categoryFormModal.dismiss()">{{ t.CANCEL }}</ion-button></ion-buttons><ion-title class="ion-text-center">{{ editingCategoryId ? t.EDIT : t.NEW_CATEGORY }}</ion-title><ion-buttons slot="end"><ion-button color="primary" (click)="saveCategory()" style="font-weight: bold;">{{ t.SAVE }}</ion-button></ion-buttons></ion-toolbar></ion-header><ion-content class="ion-padding modal-content"><div class="wallet-preview"><div class="icon-box large-preview" [ngClass]="catColor"><ion-icon [name]="catIcon"></ion-icon></div></div><div class="form-details"><ion-item class="custom-form-item" lines="none"><ion-label position="stacked">Tipe</ion-label><ion-select [(ngModel)]="catType" interface="popover" style="width: 100%;"><ion-select-option value="expense">{{ t.EXPENSE }}</ion-select-option><ion-select-option value="income">{{ t.INCOME }}</ion-select-option></ion-select></ion-item><ion-item class="custom-form-item" lines="none"><ion-input type="text" placeholder="Nama Kategori" [(ngModel)]="catName"></ion-input></ion-item><ion-item class="custom-form-item" lines="none" *ngIf="catType === 'expense'"><ion-input type="number" placeholder="Batas Anggaran" [(ngModel)]="catBudget"></ion-input></ion-item><ion-item class="custom-form-item" lines="none" button (click)="openIconPicker()"><ion-label>Pilih Ikon</ion-label><ion-icon name="chevron-down" slot="end" color="medium"></ion-icon></ion-item><div class="color-picker-section"><div class="color-grid"><div *ngFor="let color of availableColors" class="color-circle" [ngClass]="color" (click)="selectColor(color)" [class.selected]="catColor === color"><ion-icon name="checkmark" *ngIf="catColor === color"></ion-icon></div></div></div></div></ion-content></ng-template></ion-modal>
+  <ion-modal #iconModal [initialBreakpoint]="0.6" [breakpoints]="[0, 0.6, 0.9]"><ng-template><ion-content class="ion-padding modal-content"><div class="icon-grid"><div *ngFor="let icon of availableIcons" class="icon-grid-item" (click)="selectIcon(icon)" [class.active]="catIcon === icon"><ion-icon [name]="icon"></ion-icon></div></div></ion-content></ng-template></ion-modal>
+</ion-content>

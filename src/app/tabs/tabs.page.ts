@@ -1,13 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { TranslationService } from '../../services/translation.service';
 
 @Component({
   selector: 'app-tabs',
   templateUrl: 'tabs.page.html',
   styleUrls: ['tabs.page.scss'],
-  standalone: false,
+  standalone: false
 })
-export class TabsPage {
+export class TabsPage implements OnInit {
+  t: any = {};
 
-  constructor() {}
+  constructor(private translationService: TranslationService) {}
 
+  ngOnInit() {
+    this.translationService.translations$.subscribe(dict => {
+      this.t = dict;
+    });
+  }
 }
