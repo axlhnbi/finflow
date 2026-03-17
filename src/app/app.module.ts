@@ -9,6 +9,8 @@ import { IonicStorageModule } from '@ionic/storage-angular';
 import { registerLocaleData } from '@angular/common';
 import localeId from '@angular/common/locales/id';
 import localeEn from '@angular/common/locales/en';
+import { HttpClientModule } from '@angular/common/http';
+
 
 registerLocaleData(localeId, 'id-ID');
 registerLocaleData(localeEn, 'en-US');
@@ -19,7 +21,8 @@ registerLocaleData(localeEn, 'en-US');
     BrowserModule, 
     IonicModule.forRoot(), 
     AppRoutingModule,
-    IonicStorageModule.forRoot()
+    IonicStorageModule.forRoot(),
+    HttpClientModule
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],

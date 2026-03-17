@@ -1,37 +1,86 @@
+<ion-header class="ion-no-border" *ngIf="mode !== 'login'">
+  <ion-toolbar class="transparent-toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="setMode('login')" color="primary">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
 <ion-content class="ion-padding login-content">
   <div class="login-container">
-    
-    <div class="header-section">
+    <div class="header-section" *ngIf="mode === 'login'">
       <div class="logo-box">
         <ion-icon name="wallet"></ion-icon>
       </div>
-      <h1>Selamat Datang! 👋</h1>
-      <p>Catat pengeluaran jadi lebih cepat dan aman.</p>
+      <h1>{{ t.WELCOME }}</h1>
+      <p>{{ t.WELCOME_DESC }}</p>
     </div>
 
-    <div class="form-section">
+    <div class="header-section" *ngIf="mode !== 'login'">
+      <h1>{{ t.FORGOT_PWD_TITLE }}</h1>
+      <p *ngIf="mode === 'forgot-email'">{{ t.FORGOT_PWD_DESC }}</p>
+      <p *ngIf="mode === 'forgot-reset'" style="color: var(--ion-color-primary); font-weight: bold;">{{ t.OTP_SENT }}</p>
+    </div>
+
+    <div class="form-section" *ngIf="mode === 'login'">
       <ion-item class="custom-input" lines="none">
         <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
-        <ion-input type="email" placeholder="Email Address"></ion-input>
+        <ion-input type="email" [placeholder]="t.EMAIL_ADDR" [(ngModel)]="email"></ion-input>
       </ion-item>
 
       <ion-item class="custom-input" lines="none">
         <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
-        <ion-input type="password" placeholder="Password"></ion-input>
+        <ion-input [type]="showPassword ? 'text' : 'password'" [placeholder]="t.PASSWORD" [(ngModel)]="password"></ion-input>
+        <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" slot="end" color="medium" (click)="togglePassword()" style="cursor: pointer; padding-left: 10px;"></ion-icon>
       </ion-item>
 
       <div class="forgot-password">
-        <a href="#">Lupa Password?</a>
+        <a href="javascript:void(0)" (click)="setMode('forgot-email')">{{ t.FORGOT_PWD }}</a>
       </div>
 
       <ion-button expand="block" class="login-btn" shape="round" (click)="doLogin()">
-        Masuk
+        {{ t.LOGIN }}
       </ion-button>
     </div>
 
-   <div class="footer-section">
-    <p>Belum punya akun? <a routerLink="/register">Daftar sekarang</a></p>
-   </div>
+    <div class="form-section" *ngIf="mode === 'forgot-email'">
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
+        <ion-input type="email" [placeholder]="t.EMAIL_ADDR" [(ngModel)]="email"></ion-input>
+      </ion-item>
+      
+      <ion-button expand="block" class="login-btn" shape="round" (click)="requestResetOtp()" style="margin-top: 15px;">
+        {{ t.SEND_OTP_BTN }}
+      </ion-button>
+    </div>
 
+    <div class="form-section" *ngIf="mode === 'forgot-reset'">
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="keypad-outline" slot="start" color="primary"></ion-icon>
+        <ion-input type="number" [placeholder]="t.OTP_INPUT" [(ngModel)]="otp" maxlength="6"></ion-input>
+      </ion-item>
+
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
+        <ion-input [type]="showNewPassword ? 'text' : 'password'" [placeholder]="t.NEW_PWD" [(ngModel)]="newPassword"></ion-input>
+        <ion-icon [name]="showNewPassword ? 'eye-off-outline' : 'eye-outline'" slot="end" color="medium" (click)="toggleNewPassword()" style="cursor: pointer; padding-left: 10px;"></ion-icon>
+      </ion-item>
+
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="shield-checkmark-outline" slot="start" color="medium"></ion-icon>
+        <ion-input [type]="showConfirmNewPassword ? 'text' : 'password'" [placeholder]="t.CONFIRM_NEW_PWD" [(ngModel)]="confirmNewPassword"></ion-input>
+        <ion-icon [name]="showConfirmNewPassword ? 'eye-off-outline' : 'eye-outline'" slot="end" color="medium" (click)="toggleConfirmNewPassword()" style="cursor: pointer; padding-left: 10px;"></ion-icon>
+      </ion-item>
+
+      <ion-button expand="block" class="login-btn" shape="round" (click)="verifyAndResetPassword()" style="margin-top: 15px;">
+        {{ t.RESET_BTN }}
+      </ion-button>
+    </div>
+
+    <div class="footer-section" *ngIf="mode === 'login'">
+      <p>{{ t.NO_ACCOUNT }} <a routerLink="/register">{{ t.REGISTER_NOW }}</a></p>
+    </div>
   </div>
 </ion-content>

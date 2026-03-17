@@ -31,7 +31,19 @@
   <ion-modal #profileModal [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 0.9]">
     <ng-template>
       <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-buttons slot="start"><ion-button color="medium" (click)="profileModal.dismiss()">{{ t.CANCEL }}</ion-button></ion-buttons><ion-title class="ion-text-center">{{ t.EDIT }} {{ t.PROFILE }}</ion-title><ion-buttons slot="end"><ion-button color="primary" (click)="saveProfile()" style="font-weight: bold;">{{ t.SAVE }}</ion-button></ion-buttons></ion-toolbar></ion-header>
-      <ion-content class="ion-padding modal-content"><div class="form-details"><ion-item class="custom-form-item" lines="none"><ion-label position="stacked">Email</ion-label><ion-input type="email" [value]="currentUserEmail" readonly></ion-input></ion-item><ion-item class="custom-form-item" lines="none"><ion-label position="stacked">Nama Lengkap</ion-label><ion-input type="text" [(ngModel)]="editName"></ion-input></ion-item><ion-item class="custom-form-item" lines="none"><ion-label position="stacked">URL Avatar</ion-label><ion-input type="url" [(ngModel)]="editAvatarUrl"></ion-input></ion-item></div></ion-content>
+      <ion-content class="ion-padding modal-content">
+        <div class="avatar-edit-container">
+          <ion-avatar class="large-avatar">
+            <img [src]="editAvatarUrl" />
+          </ion-avatar>
+          <ion-button fill="clear" (click)="presentAvatarActionSheet()">{{ t.CHANGE_PHOTO }}</ion-button>
+          <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/jpeg, image/png, image/jpg" style="display: none;" />
+        </div>
+        <div class="form-details">
+          <ion-item class="custom-form-item" lines="none"><ion-label position="stacked">Email</ion-label><ion-input type="email" [value]="currentUserEmail" readonly></ion-input></ion-item>
+          <ion-item class="custom-form-item" lines="none"><ion-label position="stacked">Nama Lengkap</ion-label><ion-input type="text" [(ngModel)]="editName"></ion-input></ion-item>
+        </div>
+      </ion-content>
     </ng-template>
   </ion-modal>
 

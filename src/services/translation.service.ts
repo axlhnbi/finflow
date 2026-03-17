@@ -19,24 +19,14 @@ export class TranslationService {
   private async initLanguageAndCurrency() {
     const savedLang = localStorage.getItem('appLang');
     const savedCurrency = localStorage.getItem('currency');
-
-    if (savedLang) {
-      this.setLanguage(savedLang);
-    }
-
+    if (savedLang) { this.setLanguage(savedLang); }
     if (!savedLang || !savedCurrency) {
       try {
         const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
         const isIndonesia = data && data.country_code === 'ID';
-
-        if (!savedLang) {
-          this.setLanguage(isIndonesia ? 'id' : 'en');
-        }
-        
-        if (!savedCurrency) {
-          this.expenseService.updateCurrency(isIndonesia ? 'IDR' : 'USD');
-        }
+        if (!savedLang) { this.setLanguage(isIndonesia ? 'id' : 'en'); }
+        if (!savedCurrency) { this.expenseService.updateCurrency(isIndonesia ? 'IDR' : 'USD'); }
       } catch (error) {
         if (!savedLang) this.setLanguage('en');
         if (!savedCurrency) this.expenseService.updateCurrency('USD');
@@ -109,7 +99,50 @@ export class TranslationService {
         TAB_HOME: "Beranda",
         TAB_RECAP: "Rekap",
         TAB_WALLETS: "Dompet",
-        TAB_PROFILE: "Profil"
+        TAB_PROFILE: "Profil",
+        WELCOME: "Selamat Datang! 👋",
+        WELCOME_DESC: "Catat pengeluaran jadi lebih cepat dan aman.",
+        EMAIL_ADDR: "Alamat Email",
+        PASSWORD: "Kata Sandi",
+        FORGOT_PWD: "Lupa Kata Sandi?",
+        LOGIN: "Masuk",
+        NO_ACCOUNT: "Belum punya akun?",
+        REGISTER_NOW: "Daftar sekarang",
+        LOGIN_ERR_EMPTY: "Email dan kata sandi wajib diisi!",
+        LOGIN_LOADING: "Proses masuk...",
+        LOGIN_ERR_FAILED: "Masuk gagal.",
+        LOGIN_ERR_NETWORK: "Terjadi kesalahan jaringan atau server.",
+        CREATE_ACCOUNT: "Buat Akun Baru 🚀",
+        CREATE_ACCOUNT_DESC: "Mulai perjalanan finansialmu hari ini.",
+        FULL_NAME: "Nama Lengkap",
+        CONFIRM_PWD: "Konfirmasi Kata Sandi",
+        REGISTER_START: "Daftar & Mulai",
+        HAVE_ACCOUNT: "Sudah punya akun?",
+        LOGIN_HERE: "Masuk di sini",
+        REG_ERR_EMPTY: "Semua kolom wajib diisi!",
+        REG_ERR_MATCH: "Kata Sandi dan Konfirmasi tidak cocok!",
+        REG_LOADING: "Mendaftarkan akun...",
+        REG_ERR_FAILED: "Registrasi gagal.",
+        REG_ERR_NETWORK: "Registrasi gagal. Pastikan email belum terdaftar.",
+        SENDING_OTP: "Mengirim kode OTP...",
+        OTP_SENT: "Kode OTP telah dikirim ke email Anda.",
+        OTP_INPUT: "Masukkan Kode OTP",
+        VERIFY_OTP: "Verifikasi & Buat Akun",
+        ERR_OTP_INVALID: "OTP salah atau sudah kadaluarsa.",
+        FORGOT_PWD_TITLE: "Ubah Kata Sandi 🔒",
+        FORGOT_PWD_DESC: "Masukkan email yang terdaftar untuk menerima OTP.",
+        SEND_OTP_BTN: "Kirim OTP",
+        NEW_PWD: "Kata Sandi Baru",
+        CONFIRM_NEW_PWD: "Konfirmasi Kata Sandi Baru",
+        RESET_BTN: "Simpan Kata Sandi",
+        BACK_TO_LOGIN: "Kembali ke Login",
+        PWD_CHANGED_SUCCESS: "Kata sandi berhasil diubah!",
+        EMAIL_NOT_FOUND: "Email tidak terdaftar.",
+        CHANGE_PHOTO: "Ubah Foto",
+        UPLOAD_PHOTO: "Unggah dari Galeri",
+        REMOVE_PHOTO: "Hapus Foto",
+        PHOTO_UPLOADED: "Foto berhasil diunggah!",
+        PHOTO_REMOVED: "Foto telah dihapus."
       },
       en: {
         GREETING_DESC: "Ready to manage your money?",
@@ -164,7 +197,50 @@ export class TranslationService {
         TAB_HOME: "Home",
         TAB_RECAP: "Recap",
         TAB_WALLETS: "Wallets",
-        TAB_PROFILE: "Profile"
+        TAB_PROFILE: "Profile",
+        WELCOME: "Welcome! 👋",
+        WELCOME_DESC: "Track expenses faster and safer.",
+        EMAIL_ADDR: "Email Address",
+        PASSWORD: "Password",
+        FORGOT_PWD: "Forgot Password?",
+        LOGIN: "Login",
+        NO_ACCOUNT: "Don't have an account?",
+        REGISTER_NOW: "Register now",
+        LOGIN_ERR_EMPTY: "Email and password are required!",
+        LOGIN_LOADING: "Logging in...",
+        LOGIN_ERR_FAILED: "Login failed.",
+        LOGIN_ERR_NETWORK: "Network or server error occurred.",
+        CREATE_ACCOUNT: "Create Account 🚀",
+        CREATE_ACCOUNT_DESC: "Start your financial journey today.",
+        FULL_NAME: "Full Name",
+        CONFIRM_PWD: "Confirm Password",
+        REGISTER_START: "Register & Start",
+        HAVE_ACCOUNT: "Already have an account?",
+        LOGIN_HERE: "Login here",
+        REG_ERR_EMPTY: "All fields are required!",
+        REG_ERR_MATCH: "Passwords do not match!",
+        REG_LOADING: "Registering account...",
+        REG_ERR_FAILED: "Registration failed.",
+        REG_ERR_NETWORK: "Registration failed. Ensure email is not registered.",
+        SENDING_OTP: "Sending OTP code...",
+        OTP_SENT: "OTP code sent to your email.",
+        OTP_INPUT: "Enter OTP Code",
+        VERIFY_OTP: "Verify & Create Account",
+        ERR_OTP_INVALID: "Invalid or expired OTP.",
+        FORGOT_PWD_TITLE: "Change Password 🔒",
+        FORGOT_PWD_DESC: "Enter registered email to receive OTP.",
+        SEND_OTP_BTN: "Send OTP",
+        NEW_PWD: "New Password",
+        CONFIRM_NEW_PWD: "Confirm New Password",
+        RESET_BTN: "Save Password",
+        BACK_TO_LOGIN: "Back to Login",
+        PWD_CHANGED_SUCCESS: "Password changed successfully!",
+        EMAIL_NOT_FOUND: "Email is not registered.",
+        CHANGE_PHOTO: "Change Photo",
+        UPLOAD_PHOTO: "Upload from Gallery",
+        REMOVE_PHOTO: "Remove Photo",
+        PHOTO_UPLOADED: "Photo uploaded successfully!",
+        PHOTO_REMOVED: "Photo has been removed."
       }
     };
     return dict[lang];

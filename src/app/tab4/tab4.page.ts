@@ -1,11 +1,12 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import { AlertController, IonModal, ActionSheetController } from '@ionic/angular';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { AlertController, IonModal, ActionSheetController, NavController } from '@ionic/angular';
 import { ExpenseService, UserProfile, Category } from '../../services/expense.service';
 import { UtilityService } from '../../services/utility.service';
 import { TranslationService } from '../../services/translation.service';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, take } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-tab4',
@@ -18,6 +19,7 @@ export class Tab4Page implements OnInit {
   @ViewChild('categoryListModal') categoryListModal!: IonModal;
   @ViewChild('categoryFormModal') categoryFormModal!: IonModal;
   @ViewChild('iconModal') iconModal!: IonModal;
+  @ViewChild('fileInput') fileInput!: ElementRef;
 
   userProfile$!: Observable<UserProfile>;
   currency$!: Observable<string>;
@@ -51,12 +53,13 @@ export class Tab4Page implements OnInit {
   ];
 
   constructor(
-    private router: Router,
+    private navCtrl: NavController,
     private alertController: AlertController,
     private actionSheetCtrl: ActionSheetController,
     private expenseService: ExpenseService,
     private utility: UtilityService,
-    private translationService: TranslationService
+    private translationService: TranslationService,
+    private http: HttpClient
   ) { }
 
   ngOnInit() {
@@ -117,9 +120,64 @@ export class Tab4Page implements OnInit {
   openProfileEdit() {
     this.userProfile$.pipe(take(1)).subscribe(profile => {
       this.editName = profile.name;
-      this.editAvatarUrl = profile.avatarUrl;
+      this.editAvatarUrl = profile.avatarUrl || 'assets/nopic.svg';
       this.currentUserEmail = profile.email;
       this.profileModal.present();
+    });
+  }
+
+  async presentAvatarActionSheet() {
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: this.t.CHANGE_PHOTO,
+      buttons: [
+        { text: this.t.UPLOAD_PHOTO, icon: 'image', handler: () => { this.triggerFileUpload(); } },
+        { text: this.t.REMOVE_PHOTO, icon: 'trash', role: 'destructive', handler: () => { this.removeAvatar(); } },
+        { text: this.t.CANCEL, icon: 'close', role: 'cancel' }
+      ]
+    });
+    await actionSheet.present();
+  }
+
+  triggerFileUpload() {
+    if (this.fileInput) {
+      this.fileInput.nativeElement.click();
+    }
+  }
+
+  removeAvatar() {
+    this.editAvatarUrl = 'assets/nopic.svg';
+    this.utility.showToast(this.t.PHOTO_REMOVED, 'success');
+  }
+
+  async onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) return;
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+    formData.append('user_id', userId);
+
+    await this.utility.showLoading('Mengunggah...');
+
+    this.http.post<any>(`${environment.apiUrl}upload_avatar.php`, formData).subscribe({
+      next: async (res) => {
+        await this.utility.hideLoading();
+        if (res.status === 200 && res.url) {
+          this.editAvatarUrl = res.url;
+          this.utility.showToast(this.t.PHOTO_UPLOADED, 'success');
+        } else {
+          this.utility.showToast(res.message, 'danger');
+        }
+        event.target.value = '';
+      },
+      error: async (err) => {
+        await this.utility.hideLoading();
+        this.utility.showToast('Gagal mengunggah foto.', 'danger');
+        event.target.value = '';
+      }
     });
   }
 
@@ -131,7 +189,7 @@ export class Tab4Page implements OnInit {
     this.expenseService.updateUserProfile({
       name: this.editName,
       email: this.currentUserEmail,
-      avatarUrl: this.editAvatarUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg',
+      avatarUrl: this.editAvatarUrl,
       greeting: this.t.GREETING_DESC
     });
     this.profileModal.dismiss();
@@ -260,7 +318,17 @@ export class Tab4Page implements OnInit {
       message: this.currentLang === 'id' ? 'Apakah Anda yakin ingin keluar?' : 'Are you sure you want to log out?',
       buttons: [
         { text: this.t.CANCEL, role: 'cancel' },
-        { text: this.t.LOGOUT, role: 'destructive', handler: () => this.router.navigate(['/login']) }
+        { 
+          text: this.t.LOGOUT, 
+          role: 'destructive', 
+          handler: () => {
+            localStorage.removeItem('user_id');
+            localStorage.removeItem('user_name');
+            localStorage.removeItem('user_email');
+            localStorage.removeItem('user_avatar');
+            this.navCtrl.navigateRoot('/login', { animationDirection: 'back' });
+          } 
+        }
       ]
     });
     await alert.present();

@@ -115,8 +115,8 @@ export class Tab1Page implements OnInit {
   }
 
   editTransaction(trx: Transaction) {
-    this.editingTransactionId = trx.id; this.transactionType = trx.type; this.title = trx.title; 
-    this.amount = trx.amount; 
+    this.editingTransactionId = trx.id; this.transactionType = trx.type; this.title = trx.title;
+    this.amount = trx.amount;
     this.locale$.pipe(take(1)).subscribe(loc => { this.displayAmount = trx.amount.toLocaleString(loc); });
     this.date = trx.date; this.notes = trx.notes;
     this.wallet = trx.wallet; this.walletName = trx.walletName; this.walletIcon = trx.walletIcon;
@@ -186,7 +186,7 @@ export class Tab1Page implements OnInit {
     }
 
     const transactionData: Transaction = { id: this.editingTransactionId || Date.now().toString(), title: this.title.trim(), type: this.transactionType, amount: this.amount, wallet: this.wallet, walletName: this.walletName, walletIcon: this.walletIcon, date: this.date, notes: this.notes };
-    if (this.transactionType === 'transfer') { transactionData.toWallet = this.toWallet; transactionData.toWalletName = this.toWalletName; transactionData.toWalletIcon = this.toWalletIcon; } 
+    if (this.transactionType === 'transfer') { transactionData.toWallet = this.toWallet; transactionData.toWalletName = this.toWalletName; transactionData.toWalletIcon = this.toWalletIcon; }
     else { transactionData.category = this.category; transactionData.categoryName = this.categoryName; transactionData.categoryIcon = this.categoryIcon; }
     
     if (this.editingTransactionId) this.expenseService.updateTransaction(transactionData);
@@ -196,8 +196,29 @@ export class Tab1Page implements OnInit {
   }
 
   resetForm() {
-    this.editingTransactionId = null; this.transactionType = 'expense'; this.title = ''; this.amount = null; this.displayAmount = '';
-    const now = new Date(); const currentFilterDate = this.filterDate$.getValue(); currentFilterDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
-    this.date = currentFilterDate.toISOString(); this.notes = ''; this.category = ''; this.categoryName = ''; this.categoryIcon = 'grid-outline'; this.wallet = ''; this.walletName = ''; this.walletIcon = 'wallet-outline'; this.toWallet = ''; this.toWalletName = ''; this.toWalletIcon = 'wallet-outline';
+    this.editingTransactionId = null; 
+    this.transactionType = 'expense'; 
+    this.title = ''; 
+    this.amount = null; 
+    this.displayAmount = '';
+    
+    const now = new Date(); 
+    const currentFilterDate = new Date(this.filterDate$.getValue()); 
+    currentFilterDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+    
+    const tzOffset = currentFilterDate.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(currentFilterDate.getTime() - tzOffset)).toISOString().slice(0, -1);
+    this.date = localISOTime;
+
+    this.notes = ''; 
+    this.category = ''; 
+    this.categoryName = ''; 
+    this.categoryIcon = 'grid-outline'; 
+    this.wallet = ''; 
+    this.walletName = ''; 
+    this.walletIcon = 'wallet-outline'; 
+    this.toWallet = ''; 
+    this.toWalletName = ''; 
+    this.toWalletIcon = 'wallet-outline';
   }
 }
