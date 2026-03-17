@@ -44,6 +44,10 @@ export class RegisterPage implements OnInit {
       this.utility.showToast(this.t.REG_ERR_EMPTY, 'danger');
       return;
     }
+    if (this.password.length < 8) {
+      this.utility.showToast(this.t.REG_ERR_PWD_LENGTH, 'danger');
+      return;
+    }
     if (this.password !== this.confirmPassword) {
       this.utility.showToast(this.t.REG_ERR_MATCH, 'danger');
       return;
