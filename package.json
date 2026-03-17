@@ -1,7 +1,7 @@
 {
-  "name": "expense-tracker",
+  "name": "finflow",
   "version": "0.0.1",
-  "author": "Ionic Framework",
+  "author": "Axlhnbi",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
