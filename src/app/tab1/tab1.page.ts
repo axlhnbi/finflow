@@ -156,7 +156,7 @@ export class Tab1Page implements OnInit {
   saveInlineWallet() {
     const lang = this.translationService.getCurrentLang();
     if (!this.inlineWalletName.trim()) {
-      this.utility.showToast(lang === 'id' ? 'Nama rekening wajib diisi!' : 'Wallet name is required!', 'danger');
+      this.utility.showToast(lang === 'id' ? 'Nama dompet wajib diisi!' : 'Wallet name is required!', 'danger');
       return;
     }
     const newWallet: Wallet = { id: Date.now().toString(), name: this.inlineWalletName, icon: this.inlineWalletIcon, colorClass: this.inlineWalletColor };
@@ -171,7 +171,7 @@ export class Tab1Page implements OnInit {
     const lang = this.translationService.getCurrentLang();
 
     if (!this.title.trim() || !this.amount || !this.wallet) {
-      this.utility.showToast(lang === 'id' ? 'Mohon isi judul, nominal, dan rekening asal!' : 'Please fill in title, amount, and source wallet!', 'danger');
+      this.utility.showToast(lang === 'id' ? 'Mohon isi judul, nominal, dan dompet asal!' : 'Please fill in title, amount, and source wallet!', 'danger');
       return;
     }
 
@@ -181,7 +181,7 @@ export class Tab1Page implements OnInit {
     }
 
     if (this.transactionType === 'transfer' && (!this.toWallet || this.wallet === this.toWallet)) {
-      this.utility.showToast(lang === 'id' ? 'Mohon pilih rekening tujuan yang berbeda!' : 'Please select a different destination wallet!', 'danger');
+      this.utility.showToast(lang === 'id' ? 'Mohon pilih dompet tujuan yang berbeda!' : 'Please select a different destination wallet!', 'danger');
       return;
     }
 

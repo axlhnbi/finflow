@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { TranslationService } from '../services/translation.service';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 @Component({
   selector: 'app-root',
@@ -17,16 +18,15 @@ export class AppComponent {
   }
 
   initializeApp() {
-    // Memastikan DOM dan platform Ionic sudah siap sepenuhnya
-    this.platform.ready().then(() => {
-      
-      // Terapkan Mode Malam secara global di seluruh aplikasi
+    this.platform.ready().then( async () => {
       const savedMode = localStorage.getItem('darkMode');
       if (savedMode === 'true') {
         document.documentElement.classList.add('ion-palette-dark');
       } else {
         document.documentElement.classList.remove('ion-palette-dark');
       }
+
+      await SplashScreen.hide();
       
     });
   }
