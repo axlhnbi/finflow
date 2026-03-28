@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">finflow</string>
-    <string name="title_activity_main">finflow</string>
+    <string name="app_name">FinFlow - Kelola Pengeluaran</string>
+    <string name="title_activity_main">FinFlow - Kelola Pengeluaran</string>
     <string name="package_name">com.axlhnbi.finflow</string>
     <string name="custom_url_scheme">com.axlhnbi.finflow</string>
 </resources>
