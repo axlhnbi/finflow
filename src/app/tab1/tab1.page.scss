@@ -14,7 +14,7 @@
     radial-gradient(circle at 80% 100%, rgba(var(--ion-color-tertiary-rgb), 0.08) 0%, rgba(var(--ion-color-tertiary-rgb), 0.08) 25px, transparent 25px),
     linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.02) 0%, rgba(var(--ion-color-tertiary-rgb), 0.08) 100%)
     var(--ion-item-background, #ffffff);
-    
+  
   --border-radius: 16px;
   --padding-start: 12px;
   --inner-padding-end: 12px;
@@ -45,11 +45,11 @@
   height: 100%;
 }
 
-.trx-actions .price { 
-  font-weight: 700; 
-  font-size: 1.05rem; 
-  font-variant-numeric: tabular-nums; 
-  letter-spacing: -0.5px; 
+.trx-actions .price {
+  font-weight: 700;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
 }
 
 .color-danger { color: var(--ion-color-danger); }
@@ -127,14 +127,78 @@
 .modal-toolbar { --background: transparent; padding-top: 10px; }
 .modal-toolbar ion-title { font-size: 1.1rem; font-weight: 700; }
 .modal-content { --background: var(--ion-background-color); }
-.transaction-type-segment { margin-bottom: 24px; }
-.transaction-type-segment ion-segment { background: rgba(var(--ion-text-color-rgb), 0.05); border-radius: 12px; padding: 4px; }
-.transaction-type-segment ion-segment ion-segment-button { --indicator-color: var(--ion-color-primary); --color: var(--ion-color-medium); --color-checked: var(--ion-color-primary-contrast); font-weight: 600; border-radius: 8px; }
-.amount-input-container { display: flex; align-items: center; justify-content: center; margin-bottom: 30px; border-bottom: 2px solid rgba(var(--ion-color-primary-rgb), 0.2); padding-bottom: 10px; }
-.amount-input-container .currency-symbol { font-size: 2rem; font-weight: 700; color: var(--ion-color-primary); margin-right: 10px; }
-.amount-input-container .massive-input { font-size: 3rem; font-weight: 700; --padding-start: 0; text-align: left; max-width: 200px; color: var(--ion-text-color); }
+
+.prominent-title-container {
+  margin-bottom: 25px;
+  padding: 0 5px;
+}
+.massive-title-input {
+  --padding-start: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ion-text-color);
+  border-bottom: 2px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  transition: border-bottom-color 0.3s ease;
+}
+.massive-title-input.has-focus {
+  border-bottom-color: var(--ion-color-primary);
+}
+
+.prominent-name-container {
+  margin-bottom: 25px;
+  padding: 0 5px;
+  text-align: center;
+}
+.massive-name-input {
+  --padding-start: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ion-text-color);
+  border-bottom: 2px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  transition: border-bottom-color 0.3s ease;
+  text-align: center;
+}
+.massive-name-input.has-focus {
+  border-bottom-color: var(--ion-color-primary);
+}
+
+.amount-input-container { display: flex; align-items: center; justify-content: center; margin-bottom: 30px; border-bottom: 2px solid rgba(var(--ion-color-primary-rgb), 0.2); padding-bottom: 10px; width: 100%; }
+.amount-input-container .currency-symbol { font-size: clamp(1.2rem, 6vw, 2rem); font-weight: 700; color: var(--ion-color-primary); margin-right: 10px; flex-shrink: 0; }
+.amount-input-container .massive-input { font-size: clamp(1.8rem, 8vw, 2.8rem); font-weight: 700; --padding-start: 0; text-align: left; max-width: 100%; flex: 1; color: var(--ion-text-color); }
+
 .form-details .custom-form-item { --background: var(--ion-item-background, #ffffff); --border-radius: 16px; --padding-start: 12px; margin-bottom: 16px; border: 1px solid rgba(var(--ion-text-color-rgb), 0.05); }
-.form-details .custom-form-item ion-select, .form-details .custom-form-item ion-label { font-weight: 600; color: var(--ion-text-color); flex-shrink: 0; white-space: nowrap; margin-right: 10px; }
+
+.selection-item {
+  --padding-start: 8px;
+  --inner-padding-end: 12px;
+}
+.selection-item .icon-box {
+  margin-right: 12px;
+  width: 42px;
+  height: 42px;
+}
+.selection-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+}
+.selection-label {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.selection-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ion-text-color);
+}
+.selection-value.is-placeholder {
+  color: var(--ion-color-medium);
+  font-weight: 500;
+}
+
 .datetime-wrapper { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; width: 100%; padding-top: 10px; padding-bottom: 10px; gap: 8px; overflow: hidden; }
 .datetime-wrapper ion-label { font-size: 0.85rem !important; color: var(--ion-color-medium) !important; margin-right: 0 !important; font-weight: 500 !important; }
 .selection-list { background: transparent; }
@@ -161,7 +225,7 @@
 .dashed-add-btn:active { background: rgba(var(--ion-color-primary-rgb), 0.1); transform: scale(0.98); }
 .dashed-add-btn ion-icon { font-size: 1.6rem; }
 
-.wallet-preview { display: flex; justify-content: center; margin-bottom: 24px; }
+.wallet-preview { display: flex; justify-content: center; margin-bottom: 15px; }
 .color-picker-section { padding: 10px 5px; }
 .color-picker-section .picker-label { font-weight: 700; font-size: 0.95rem; margin-bottom: 12px; color: var(--ion-text-color); }
 .color-grid { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -174,15 +238,16 @@
 .icon-grid-item.active ion-icon { color: var(--ion-color-primary); }
 
 html.ion-palette-dark {
+  .massive-title-input { border-bottom-color: rgba(255, 255, 255, 0.1); }
+  .massive-name-input { border-bottom-color: rgba(255, 255, 255, 0.1); }
   .amount-input-container { border-bottom: 2px solid rgba(255, 255, 255, 0.1); }
-  
   .transaction-item {
     --background:
       radial-gradient(circle at 100% 0%, rgba(var(--ion-color-primary-rgb), 0.15) 0%, rgba(var(--ion-color-primary-rgb), 0.15) 40px, transparent 40px),
       radial-gradient(circle at 80% 100%, rgba(var(--ion-color-tertiary-rgb), 0.15) 0%, rgba(var(--ion-color-tertiary-rgb), 0.15) 25px, transparent 25px),
       linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.05) 0%, rgba(var(--ion-color-tertiary-rgb), 0.15) 100%)
       var(--ion-item-background, #1e1e1e);
-        
+      
     box-shadow: none;
     border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
   }

@@ -29,13 +29,17 @@
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed"><ion-fab-button (click)="openAddWallet()"><ion-icon name="add"></ion-icon></ion-fab-button></ion-fab>
 
-  <ion-modal #walletModal [initialBreakpoint]="0.85" [breakpoints]="[0, 0.5, 0.85, 1]">
+  <ion-modal #walletModal [initialBreakpoint]="0.85" [breakpoints]="[0, 0.5, 0.85, 1]" (ionModalDidPresent)="focusWalletNameInput()">
     <ng-template>
       <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-buttons slot="start"><ion-button color="medium" (click)="dismissWalletModal()">{{ t.CANCEL }}</ion-button></ion-buttons><ion-title class="ion-text-center">{{ editingWalletId ? t.EDIT : t.NEW_WALLET }}</ion-title><ion-buttons slot="end"><ion-button color="primary" (click)="saveWallet()" style="font-weight: bold;">{{ t.SAVE }}</ion-button></ion-buttons></ion-toolbar></ion-header>
       <ion-content class="ion-padding modal-content">
         <div class="wallet-preview"><div class="icon-box large-preview" [ngClass]="walletColor"><ion-icon [name]="walletIcon"></ion-icon></div></div>
+        
+        <div class="prominent-name-container">
+          <ion-input #walletNameInput class="massive-name-input" placeholder="Nama Dompet" [(ngModel)]="walletName"></ion-input>
+        </div>
+
         <div class="form-details">
-          <ion-item class="custom-form-item" lines="none"><ion-input type="text" placeholder="Nama Rekening" [(ngModel)]="walletName"></ion-input></ion-item>
           <ion-item class="custom-form-item" lines="none" button (click)="openIconPicker()"><ion-label>Pilih Ikon</ion-label><ion-icon name="chevron-down" slot="end" color="medium"></ion-icon></ion-item>
           <div class="color-picker-section"><div class="color-grid"><div *ngFor="let color of availableColors" class="color-circle" [ngClass]="color" (click)="selectColor(color)" [class.selected]="walletColor === color"><ion-icon name="checkmark" *ngIf="walletColor === color"></ion-icon></div></div></div>
         </div>

@@ -21,13 +21,10 @@ export class ExpenseService {
 
   private userProfile = new BehaviorSubject<UserProfile>({ name: '', email: '', greeting: '', avatarUrl: '' });
   userProfile$ = this.userProfile.asObservable();
-  
   private wallets = new BehaviorSubject<Wallet[]>([]);
   wallets$ = this.wallets.asObservable();
-  
   private categories = new BehaviorSubject<Category[]>([]);
   categories$ = this.categories.asObservable();
-  
   private transactions = new BehaviorSubject<Transaction[]>([]);
   transactions$ = this.transactions.asObservable();
 
@@ -35,8 +32,8 @@ export class ExpenseService {
   currency$ = this.currency.asObservable();
   locale$: Observable<string> = this.currency$.pipe(map(c => c === 'IDR' ? 'id-ID' : 'en-US'));
 
-  constructor(private storage: Storage, private http: HttpClient) { 
-    this.initDatabase(); 
+  constructor(private storage: Storage, private http: HttpClient) {
+    this.initDatabase();
   }
 
   async initDatabase() {
@@ -44,31 +41,39 @@ export class ExpenseService {
     this._storage = storage;
     if (this.currentUserId) {
       await this.loadDataFromStorage();
-      this.syncWithServer();
+      
+      const isFreshLogin = !localStorage.getItem('last_sync_' + this.currentUserId);
+      
+      if (isFreshLogin) {
+        await this.syncWithServer();
+        this.injectDefaultsIfEmpty();
+      } else {
+        this.injectDefaultsIfEmpty();
+        this.syncWithServer();
+      }
     }
   }
 
   async loadDataFromStorage() {
-    const storedUser = await this._storage?.get('userProfile_' + this.currentUserId); 
+    const storedUser = await this._storage?.get('userProfile_' + this.currentUserId);
     if (storedUser) {
       if (!storedUser.avatarUrl || storedUser.avatarUrl.trim() === '') {
         storedUser.avatarUrl = 'assets/nopic.svg';
       }
       this.userProfile.next(storedUser);
     } else {
-      this.userProfile.next({ 
-        name: localStorage.getItem('user_name') || 'User', 
-        email: localStorage.getItem('user_email') || '', 
-        greeting: 'Siap kelola uangmu?', 
-        avatarUrl: localStorage.getItem('user_avatar') || 'assets/nopic.svg' 
+      this.userProfile.next({
+        name: localStorage.getItem('user_name') || 'User',
+        email: localStorage.getItem('user_email') || '',
+        greeting: 'Siap kelola uangmu?',
+        avatarUrl: localStorage.getItem('user_avatar') || 'assets/nopic.svg'
       });
     }
-    
-    this.rawWallets = await this._storage?.get('wallets_' + this.currentUserId) || []; 
-    this.rawCategories = await this._storage?.get('categories_' + this.currentUserId) || []; 
-    this.rawTransactions = await this._storage?.get('transactions_' + this.currentUserId) || []; 
+   
+    this.rawWallets = await this._storage?.get('wallets_' + this.currentUserId) || [];
+    this.rawCategories = await this._storage?.get('categories_' + this.currentUserId) || [];
+    this.rawTransactions = await this._storage?.get('transactions_' + this.currentUserId) || [];
 
-    this.injectDefaultsIfEmpty();
     this.refreshUI();
   }
 
@@ -94,26 +99,26 @@ export class ExpenseService {
   private refreshUI() {
     this.wallets.next(this.rawWallets.filter(w => !w.is_deleted));
     this.categories.next(this.rawCategories.filter(c => !c.is_deleted));
-    
+   
     const enrichedTransactions = this.rawTransactions
       .filter(t => !t.is_deleted)
       .map(t => {
         const w = this.rawWallets.find(wallet => wallet.id === t.wallet);
-        if (w) { 
-          t.walletName = w.name; 
-          t.walletIcon = w.icon; 
+        if (w) {
+          t.walletName = w.name;
+          t.walletIcon = w.icon;
         }
         if (t.type === 'transfer' && t.toWallet) {
           const tw = this.rawWallets.find(wallet => wallet.id === t.toWallet);
-          if (tw) { 
-            t.toWalletName = tw.name; 
-            t.toWalletIcon = tw.icon; 
+          if (tw) {
+            t.toWalletName = tw.name;
+            t.toWalletIcon = tw.icon;
           }
         } else if (t.category) {
           const c = this.rawCategories.find(cat => cat.id === t.category);
-          if (c) { 
-            t.categoryName = c.name; 
-            t.categoryIcon = c.icon; 
+          if (c) {
+            t.categoryName = c.name;
+            t.categoryIcon = c.icon;
           }
         }
         return t;
@@ -122,29 +127,42 @@ export class ExpenseService {
     this.transactions.next(enrichedTransactions);
   }
 
-  private saveDataToStorage(key: string, data: any) { 
-    if (this._storage) this._storage.set(key, data); 
+  private saveDataToStorage(key: string, data: any) {
+    if (this._storage) this._storage.set(key, data);
   }
 
-  updateCurrency(code: string) { localStorage.setItem('currency', code); this.currency.next(code); }
+  updateCurrency(code: string) { 
+    localStorage.setItem('currency', code); 
+    this.currency.next(code); 
+  }
   
   updateUserProfile(profile: UserProfile) {
     if (!profile.avatarUrl || profile.avatarUrl.trim() === '') {
       profile.avatarUrl = 'assets/nopic.svg';
     }
-    this.userProfile.next(profile); 
-    this.saveDataToStorage('userProfile_' + this.currentUserId, profile); 
+    this.userProfile.next(profile);
+    this.saveDataToStorage('userProfile_' + this.currentUserId, profile);
     this.pushDataToServer();
   }
   
-  resetData() {
-    this.rawTransactions = []; this.rawWallets = []; this.rawCategories = [];
+  async resetData() {
+    if (!this.currentUserId) return;
+
+    try {
+      const resetUrl = `${environment.apiUrl}sync.php?action=reset&user_id=${this.currentUserId}`;
+      await lastValueFrom(this.http.post(resetUrl, {}));
+    } catch (error) {}
+
+    this.rawTransactions = [];
+    this.rawWallets = [];
+    this.rawCategories = [];
+
+    this.saveDataToStorage('transactions_' + this.currentUserId, []);
+    this.saveDataToStorage('wallets_' + this.currentUserId, []);
+    this.saveDataToStorage('categories_' + this.currentUserId, []);
+
     this.injectDefaultsIfEmpty();
     this.refreshUI();
-    this.saveDataToStorage('transactions_' + this.currentUserId, []); 
-    this.saveDataToStorage('wallets_' + this.currentUserId, this.rawWallets); 
-    this.saveDataToStorage('categories_' + this.currentUserId, this.rawCategories);
-    this.pushDataToServer();
   }
 
   addWallet(wallet: Wallet) { wallet.is_deleted = false; this.rawWallets.push(wallet); this.refreshUI(); this.saveDataToStorage('wallets_' + this.currentUserId, this.rawWallets); this.pushDataToServer(); }
@@ -177,13 +195,13 @@ export class ExpenseService {
     if (!this.currentUserId) return;
     try {
       const currentProfile = this.userProfile.getValue();
-      const payload = { 
-        wallets: this.rawWallets, 
-        categories: this.rawCategories, 
+      const payload = {
+        wallets: this.rawWallets,
+        categories: this.rawCategories,
         transactions: this.rawTransactions,
         user_profile: {
           name: currentProfile.name,
-          avatar_url: currentProfile.avatarUrl === 'assets/nopic.svg' ? null : currentProfile.avatarUrl
+          avatarUrl: currentProfile.avatarUrl === 'assets/nopic.svg' ? null : currentProfile.avatarUrl
         }
       };
       const pushUrl = `${environment.apiUrl}sync.php?action=push&user_id=${this.currentUserId}`;
@@ -193,7 +211,7 @@ export class ExpenseService {
 
   private mergeIncomingData(incomingData: any) {
     let hasChanges = false;
-    
+   
     if (incomingData.user_profile) {
       const currentProfile = this.userProfile.getValue();
       const newProfile = {
@@ -211,7 +229,7 @@ export class ExpenseService {
     if (incomingData.wallets && incomingData.wallets.length > 0) { incomingData.wallets.forEach((inW: any) => { inW.is_deleted = inW.is_deleted == 1; const index = this.rawWallets.findIndex(w => w.id === inW.id); if (index > -1) this.rawWallets[index] = inW; else this.rawWallets.push(inW); hasChanges = true; }); if (hasChanges) this.saveDataToStorage('wallets_' + this.currentUserId, this.rawWallets); }
     if (incomingData.categories && incomingData.categories.length > 0) { incomingData.categories.forEach((inC: any) => { inC.is_deleted = inC.is_deleted == 1; inC.budget = parseFloat(inC.budget); const index = this.rawCategories.findIndex(c => c.id === inC.id); if (index > -1) this.rawCategories[index] = inC; else this.rawCategories.push(inC); hasChanges = true; }); if (hasChanges) this.saveDataToStorage('categories_' + this.currentUserId, this.rawCategories); }
     if (incomingData.transactions && incomingData.transactions.length > 0) { incomingData.transactions.forEach((inT: any) => { inT.is_deleted = inT.is_deleted == 1; inT.amount = parseFloat(inT.amount); const index = this.rawTransactions.findIndex(t => t.id === inT.id); if (index > -1) this.rawTransactions[index] = inT; else this.rawTransactions.push(inT); hasChanges = true; }); if (hasChanges) this.saveDataToStorage('transactions_' + this.currentUserId, this.rawTransactions); }
-    
+   
     if (hasChanges) this.refreshUI();
   }
 }

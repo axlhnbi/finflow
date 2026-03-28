@@ -20,14 +20,13 @@ export class Tab4Page implements OnInit {
   @ViewChild('categoryFormModal') categoryFormModal!: IonModal;
   @ViewChild('iconModal') iconModal!: IonModal;
   @ViewChild('fileInput') fileInput!: ElementRef;
+  @ViewChild('catNameInput') catNameInput!: any;
 
   userProfile$!: Observable<UserProfile>;
   currency$!: Observable<string>;
   locale$!: Observable<string>;
-  
   t: any = {};
   currentLang: string = 'id';
-  
   filterType$ = new BehaviorSubject<'expense' | 'income'>('expense');
   filteredCategories$!: Observable<Category[]>;
   currentFilter: string = 'expense';
@@ -45,7 +44,7 @@ export class Tab4Page implements OnInit {
   catType: 'income' | 'expense' = 'expense';
 
   availableIcons: string[] = [
-    'grid', 'fast-food', 'bus', 'game-controller', 'cart', 'home', 'medkit', 
+    'grid', 'fast-food', 'bus', 'game-controller', 'cart', 'home', 'medkit',
     'book', 'airplane', 'cafe', 'barbell', 'bag', 'cash', 'gift', 'business', 'wallet'
   ];
   availableColors: string[] = [
@@ -66,11 +65,11 @@ export class Tab4Page implements OnInit {
     this.userProfile$ = this.expenseService.userProfile$;
     this.currency$ = this.expenseService.currency$;
     this.locale$ = this.expenseService.locale$;
-    
+   
     this.translationService.translations$.subscribe(dict => {
       this.t = dict;
     });
-    
+   
     this.translationService.currentLang$.subscribe(l => {
       this.currentLang = l;
     });
@@ -207,6 +206,14 @@ export class Tab4Page implements OnInit {
     this.filterType$.next(this.currentFilter as 'expense' | 'income');
   }
 
+  focusCatNameInput() {
+    if (this.catNameInput) {
+      setTimeout(() => {
+        this.catNameInput.setFocus();
+      }, 150);
+    }
+  }
+
   openAddCategory() {
     this.editingCategoryId = null;
     this.catName = '';
@@ -244,7 +251,7 @@ export class Tab4Page implements OnInit {
       this.utility.showToast(this.currentLang === 'id' ? 'Nama kategori wajib diisi!' : 'Category name is required!', 'danger');
       return;
     }
-    
+   
     const catData: Category = {
       id: this.editingCategoryId || Date.now().toString(),
       name: this.catName,
@@ -259,7 +266,7 @@ export class Tab4Page implements OnInit {
     } else {
       this.expenseService.addCategory(catData);
     }
-    
+   
     this.categoryFormModal.dismiss();
   }
 
@@ -280,19 +287,19 @@ export class Tab4Page implements OnInit {
     const actionSheet = await this.actionSheetCtrl.create({
       header: this.t.EXPORT,
       buttons: [
-        { 
-          text: this.currentLang === 'id' ? 'Unduh Excel (CSV)' : 'Download Excel (CSV)', 
-          icon: 'document-text', 
+        {
+          text: this.currentLang === 'id' ? 'Unduh Excel (CSV)' : 'Download Excel (CSV)',
+          icon: 'document-text',
           handler: () => {
             this.expenseService.transactions$.pipe(take(1)).subscribe(trx => this.utility.exportToExcel(trx));
-          } 
+          }
         },
-        { 
-          text: this.currentLang === 'id' ? 'Unduh PDF' : 'Download PDF', 
-          icon: 'print', 
+        {
+          text: this.currentLang === 'id' ? 'Unduh PDF' : 'Download PDF',
+          icon: 'print',
           handler: () => {
             this.expenseService.transactions$.pipe(take(1)).subscribe(trx => this.utility.exportToPDF(trx));
-          } 
+          }
         },
         { text: this.t.CANCEL, role: 'cancel' }
       ]
@@ -303,10 +310,22 @@ export class Tab4Page implements OnInit {
   async confirmReset() {
     const alert = await this.alertController.create({
       header: this.t.RESET,
-      message: this.currentLang === 'id' ? 'Reset semua data?' : 'Reset all data?',
+      message: this.currentLang === 'id' ? 'Reset semua data secara permanen?' : 'Reset all data permanently?',
       buttons: [
         { text: this.t.CANCEL, role: 'cancel' },
-        { text: this.t.RESET, role: 'destructive', handler: () => { this.expenseService.resetData(); } }
+        { 
+          text: this.t.RESET, 
+          role: 'destructive', 
+          handler: async () => { 
+            await this.utility.showLoading(this.currentLang === 'id' ? 'Mereset data...' : 'Resetting data...');
+            await this.expenseService.resetData(); 
+            await this.utility.hideLoading();
+            this.utility.showToast(
+              this.currentLang === 'id' ? 'Semua data berhasil direset.' : 'All data successfully reset.', 
+              'success'
+            );
+          } 
+        }
       ]
     });
     await alert.present();
@@ -318,16 +337,16 @@ export class Tab4Page implements OnInit {
       message: this.currentLang === 'id' ? 'Apakah Anda yakin ingin keluar?' : 'Are you sure you want to log out?',
       buttons: [
         { text: this.t.CANCEL, role: 'cancel' },
-        { 
-          text: this.t.LOGOUT, 
-          role: 'destructive', 
+        {
+          text: this.t.LOGOUT,
+          role: 'destructive',
           handler: () => {
             localStorage.removeItem('user_id');
             localStorage.removeItem('user_name');
             localStorage.removeItem('user_email');
             localStorage.removeItem('user_avatar');
             this.navCtrl.navigateRoot('/login', { animationDirection: 'back' });
-          } 
+          }
         }
       ]
     });

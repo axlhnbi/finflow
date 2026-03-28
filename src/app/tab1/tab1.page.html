@@ -1,96 +1,227 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="custom-toolbar">
     <div class="header-top-section" *ngIf="userProfile$ | async as user">
-      <div class="user-profile"><ion-avatar class="avatar-img"><img [src]="user.avatarUrl" /></ion-avatar><div class="greeting-text"><h2>{{ t.GREETING_DESC ? 'Halo, ' + user.name + '! 👋' : 'Hello, ' + user.name + '! 👋' }}</h2><p>{{ t.GREETING_DESC }}</p></div></div>
+      <div class="user-profile">
+        <ion-avatar class="avatar-img"><img [src]="user.avatarUrl"></ion-avatar>
+        <div class="greeting-text"><h2>{{ user.name }}</h2><p>{{ user.greeting }}</p></div>
+      </div>
     </div>
-    <div class="date-navigator"><ion-button fill="clear" size="small" color="medium" (click)="prevDay()"><ion-icon name="chevron-back"></ion-icon></ion-button><div class="date-chip" id="open-date-filter"><ion-icon name="calendar-clear-outline"></ion-icon><span>{{ (filterDate$ | async) | date:'dd MMM yyyy' }}</span></div><ion-button fill="clear" size="small" color="medium" (click)="nextDay()"><ion-icon name="chevron-forward"></ion-icon></ion-button></div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="ion-padding">
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
-  <ion-list>
-    <ion-list-header>{{ t.TRANSACTIONS }}</ion-list-header>
-    <div *ngIf="(filteredTransactions$ | async)?.length === 0" class="ion-text-center ion-padding" style="color: var(--ion-color-medium); margin-top: 20px;"><ion-icon name="receipt-outline" style="font-size: 3rem;"></ion-icon><p>{{ t.NO_TRANSACTION }}</p></div>
-    <ion-item class="transaction-item" *ngFor="let trx of filteredTransactions$ | async" button detail="false" (click)="openTransactionOptions(trx)">
-      <div slot="start" class="icon-box" [ngClass]="trx.type === 'expense' ? 'warning-box' : (trx.type === 'income' ? 'success-box' : 'tertiary-box')"><ion-icon [name]="trx.type === 'transfer' ? 'swap-horizontal' : trx.categoryIcon"></ion-icon></div>
-      <ion-label class="trx-content"><h2>{{ trx.title }}</h2><p class="trx-meta" *ngIf="trx.type !== 'transfer'">{{ trx.categoryName }} • {{ trx.walletName }}</p><p class="trx-meta" *ngIf="trx.type === 'transfer'">{{ trx.walletName }} ➔ {{ trx.toWalletName }}</p><p class="time-text">{{ trx.date | date:'HH:mm' }}</p></ion-label>
-      <div slot="end" class="trx-actions"><span class="price" [ngClass]="trx.type === 'expense' ? 'color-danger' : (trx.type === 'income' ? 'color-success' : 'color-medium')">{{ trx.type === 'expense' ? '-' : (trx.type === 'income' ? '+' : '') }}{{ trx.amount | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}</span></div>
+  <div class="date-navigator">
+    <ion-button fill="clear" (click)="prevDay()"><ion-icon name="chevron-back"></ion-icon></ion-button>
+    <div class="date-chip">
+      <ion-icon name="calendar-clear-outline"></ion-icon>
+      <ion-datetime-button datetime="datetime"></ion-datetime-button>
+      <ion-modal [keepContentsMounted]="true"><ng-template><ion-datetime id="datetime" presentation="date" [value]="date" (ionChange)="onFilterDateChange($event)"></ion-datetime></ng-template></ion-modal>
+    </div>
+    <ion-button fill="clear" (click)="nextDay()"><ion-icon name="chevron-forward"></ion-icon></ion-button>
+  </div>
+
+  <ion-list lines="none">
+    <ion-item class="transaction-item" *ngFor="let trx of filteredTransactions$ | async" button (click)="openTransactionOptions(trx)">
+      <div slot="start" class="icon-box" [ngClass]="trx.type === 'expense' ? 'danger-box' : (trx.type === 'income' ? 'success-box' : 'tertiary-box')">
+        <ion-icon [name]="trx.type === 'transfer' ? 'swap-horizontal' : trx.categoryIcon"></ion-icon>
+      </div>
+      <ion-label class="trx-content">
+        <h2>{{ trx.title }}</h2>
+        <p class="trx-meta">{{ trx.type === 'transfer' ? trx.walletName + ' ➔ ' + trx.toWalletName : trx.categoryName }}</p>
+        <span class="time-text">{{ trx.date | date:'HH:mm' }}</span>
+      </ion-label>
+      <div slot="end" class="trx-actions">
+        <span class="price" [ngClass]="trx.type === 'expense' ? 'color-danger' : (trx.type === 'income' ? 'color-success' : 'color-medium')">
+          {{ trx.type === 'expense' ? '-' : (trx.type === 'income' ? '+' : '') }}{{ trx.amount | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}
+        </span>
+      </div>
     </ion-item>
   </ion-list>
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed"><ion-fab-button (click)="openAddModal()"><ion-icon name="add"></ion-icon></ion-fab-button></ion-fab>
 
-  <ion-modal trigger="open-date-filter" [initialBreakpoint]="0.5" [breakpoints]="[0, 0.5]"><ng-template><ion-content class="ion-padding ion-text-center"><ion-datetime presentation="date" [value]="(filterDate$ | async)?.toISOString()" (ionChange)="onFilterDateChange($event)" size="cover"></ion-datetime></ion-content></ng-template></ion-modal>
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openAddModal()"><ion-icon name="add"></ion-icon></ion-fab-button>
+  </ion-fab>
 
-  <ion-modal #trxOptionsModal [initialBreakpoint]="0.45" [breakpoints]="[0, 0.45, 0.6]">
+  <ion-modal #mainModal [initialBreakpoint]="0.9" [breakpoints]="[0, 0.9, 1]" (ionModalDidPresent)="focusTitleInput()">
     <ng-template>
-      <ion-content class="ion-padding modal-content" *ngIf="selectedTrx">
-        <div class="trx-detail-header">
-          <div class="icon-box large-preview" [ngClass]="selectedTrx.type === 'expense' ? 'warning-box' : (selectedTrx.type === 'income' ? 'success-box' : 'tertiary-box')"><ion-icon [name]="selectedTrx.type === 'transfer' ? 'swap-horizontal' : selectedTrx.categoryIcon"></ion-icon></div>
-          <h2>{{ selectedTrx.title }}</h2>
-          <h1 [ngClass]="selectedTrx.type === 'expense' ? 'color-danger' : (selectedTrx.type === 'income' ? 'color-success' : 'color-medium')">{{ selectedTrx.type === 'expense' ? '-' : (selectedTrx.type === 'income' ? '+' : '') }}{{ selectedTrx.amount | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}</h1>
-          <p>{{ selectedTrx.date | date:'dd MMM yyyy, HH:mm' }}</p>
-        </div>
-        <div class="trx-detail-info">
-          <div class="info-row" *ngIf="selectedTrx.type !== 'transfer'"><ion-icon name="grid-outline"></ion-icon><span>{{ selectedTrx.categoryName }}</span></div>
-          <div class="info-row" *ngIf="selectedTrx.type !== 'transfer'"><ion-icon name="wallet-outline"></ion-icon><span>{{ selectedTrx.walletName }}</span></div>
-          <div class="info-row" *ngIf="selectedTrx.type === 'transfer'"><ion-icon name="swap-horizontal-outline"></ion-icon><span>{{ selectedTrx.walletName }} ➔ {{ selectedTrx.toWalletName }}</span></div>
-          <div class="info-row" *ngIf="selectedTrx.notes"><ion-icon name="document-text-outline"></ion-icon><span>{{ selectedTrx.notes }}</span></div>
-        </div>
-        <div class="trx-detail-actions"><ion-button expand="block" class="modal-action-btn edit-action" (click)="editSelectedTransaction()"><ion-icon name="create-outline" slot="start"></ion-icon> {{ t.EDIT_TRX }}</ion-button><ion-button expand="block" fill="outline" class="modal-action-btn delete-action" (click)="deleteSelectedTransaction()"><ion-icon name="trash-outline" slot="start"></ion-icon> {{ t.DELETE }}</ion-button></div>
-      </ion-content>
-    </ng-template>
-  </ion-modal>
-
-  <ion-modal #mainModal [initialBreakpoint]="0.95" [breakpoints]="[0, 0.5, 0.95, 1]">
-    <ng-template>
-      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-buttons slot="start"><ion-button color="medium" (click)="dismissModal()">{{ t.CANCEL }}</ion-button></ion-buttons><ion-title class="ion-text-center">{{ editingTransactionId ? t.EDIT_TRX : t.ADD_TRX }}</ion-title><ion-buttons slot="end"><ion-button color="primary" (click)="saveTransaction()" style="font-weight: bold;">{{ t.SAVE }}</ion-button></ion-buttons></ion-toolbar></ion-header>
+      <ion-header class="ion-no-border">
+        <ion-toolbar class="modal-toolbar">
+          <ion-buttons slot="start"><ion-button color="medium" (click)="dismissModal()">{{ t.CANCEL }}</ion-button></ion-buttons>
+          <ion-title class="ion-text-center">{{ editingTransactionId ? t.EDIT_TRX : (transactionType === 'expense' ? t.EXPENSE : (transactionType === 'income' ? t.INCOME : t.TRANSFER)) }}</ion-title>
+          <ion-buttons slot="end"><ion-button color="primary" style="font-weight: bold;" (click)="saveTransaction()">{{ t.SAVE }}</ion-button></ion-buttons>
+        </ion-toolbar>
+      </ion-header>
       <ion-content class="ion-padding modal-content">
-        <div class="transaction-type-segment">
-          <ion-segment [(ngModel)]="transactionType" mode="ios" (ionChange)="onTransactionTypeChange()">
-            <ion-segment-button value="expense"><ion-label>{{ t.EXPENSE }}</ion-label></ion-segment-button>
-            <ion-segment-button value="income"><ion-label>{{ t.INCOME }}</ion-label></ion-segment-button>
-            <ion-segment-button value="transfer"><ion-label>{{ t.TRANSFER }}</ion-label></ion-segment-button>
-          </ion-segment>
+        
+        <div class="prominent-title-container">
+          <ion-input #titleInput class="massive-title-input" [placeholder]="t.TITLE_PLACEHOLDER || 'Judul Aktivitas...'" [(ngModel)]="title"></ion-input>
         </div>
+
         <div class="amount-input-container">
           <span class="currency-symbol">{{ (currency$ | async) === 'USD' ? '$' : 'Rp' }}</span>
-          <ion-input type="text" inputmode="numeric" placeholder="0" class="massive-input" [value]="displayAmount" (ionInput)="onAmountChange($event)"></ion-input>
+          <ion-input class="massive-input" type="tel" [value]="displayAmount" (ionInput)="onAmountChange($event)" placeholder="0"></ion-input>
         </div>
+
         <div class="form-details">
-          <ion-item class="custom-form-item" lines="none"><div slot="start" class="icon-box info-box"><ion-icon name="pencil-outline"></ion-icon></div><ion-input type="text" [placeholder]="t.TITLE_PLACEHOLDER" [(ngModel)]="title" maxlength="30"></ion-input></ion-item>
-          <ion-item *ngIf="transactionType !== 'transfer'" class="custom-form-item" lines="none" button detail="false" (click)="openCategory()"><div slot="start" class="icon-box warning-box"><ion-icon [name]="categoryIcon"></ion-icon></div><ion-label [color]="categoryName ? '' : 'medium'">{{ categoryName || t.CHOOSE_CATEGORY }}</ion-label><ion-icon name="chevron-down" slot="end" color="medium"></ion-icon></ion-item>
-          <ion-item class="custom-form-item" lines="none" button detail="false" (click)="openWallet()"><div slot="start" class="icon-box primary-box"><ion-icon [name]="walletIcon"></ion-icon></div><ion-label [color]="walletName ? '' : 'medium'">{{ walletName || (transactionType === 'transfer' ? t.FROM_WALLET : t.CHOOSE_WALLET) }}</ion-label><ion-icon name="chevron-down" slot="end" color="medium"></ion-icon></ion-item>
-          <ion-item *ngIf="transactionType === 'transfer'" class="custom-form-item" lines="none" button detail="false" (click)="openToWallet()"><div slot="start" class="icon-box tertiary-box"><ion-icon [name]="toWalletIcon"></ion-icon></div><ion-label [color]="toWalletName ? '' : 'medium'">{{ toWalletName || t.TO_WALLET }}</ion-label><ion-icon name="chevron-down" slot="end" color="medium"></ion-icon></ion-item>
-          <ion-item class="custom-form-item" lines="none" style="align-items: flex-start;"><div slot="start" class="icon-box success-box" style="margin-top: 10px;"><ion-icon name="calendar-outline"></ion-icon></div><div class="datetime-wrapper"><ion-label>{{ t.TRX_TIME }}</ion-label><ion-datetime-button datetime="datetime"></ion-datetime-button></div><ion-modal [keepContentsMounted]="true"><ng-template><ion-datetime id="datetime" presentation="date-time" [(ngModel)]="date" hourCycle="h23"></ion-datetime></ng-template></ion-modal></ion-item>
-          <ion-item class="custom-form-item" lines="none" style="align-items: flex-start;"><div slot="start" class="icon-box medium-box" style="margin-top: 10px;"><ion-icon name="document-text-outline"></ion-icon></div><ion-textarea [placeholder]="t.NOTES_PLACEHOLDER" [autoGrow]="true" rows="2" [(ngModel)]="notes"></ion-textarea></ion-item>
+          <ion-item class="custom-form-item selection-item" lines="none" button (click)="openWallet()">
+            <div slot="start" class="icon-box" [ngClass]="walletColor">
+              <ion-icon [name]="walletIcon"></ion-icon>
+            </div>
+            <div class="selection-content">
+              <span class="selection-label">{{ transactionType === 'transfer' ? t.FROM_WALLET : t.CHOOSE_WALLET }}</span>
+              <span class="selection-value" [class.is-placeholder]="!walletName">{{ walletName || t.CHOOSE_WALLET }}</span>
+            </div>
+            <ion-icon name="chevron-down" slot="end" color="medium"></ion-icon>
+          </ion-item>
+
+          <ion-item class="custom-form-item selection-item" lines="none" button (click)="openToWallet()" *ngIf="transactionType === 'transfer'">
+            <div slot="start" class="icon-box" [ngClass]="toWalletColor">
+              <ion-icon [name]="toWalletIcon"></ion-icon>
+            </div>
+            <div class="selection-content">
+              <span class="selection-label">{{ t.TO_WALLET }}</span>
+              <span class="selection-value" [class.is-placeholder]="!toWalletName">{{ toWalletName || t.TO_WALLET }}</span>
+            </div>
+            <ion-icon name="chevron-down" slot="end" color="medium"></ion-icon>
+          </ion-item>
+
+          <ion-item class="custom-form-item selection-item" lines="none" button (click)="openCategory()" *ngIf="transactionType !== 'transfer'">
+            <div slot="start" class="icon-box" [ngClass]="categoryColor">
+              <ion-icon [name]="categoryIcon"></ion-icon>
+            </div>
+            <div class="selection-content">
+              <span class="selection-label">{{ t.CHOOSE_CATEGORY }}</span>
+              <span class="selection-value" [class.is-placeholder]="!categoryName">{{ categoryName || t.CHOOSE_CATEGORY }}</span>
+            </div>
+            <ion-icon name="chevron-down" slot="end" color="medium"></ion-icon>
+          </ion-item>
+
+          <ion-item class="custom-form-item datetime-wrapper" lines="none">
+            <ion-label>{{ t.TRX_TIME }}</ion-label>
+            <ion-datetime-button datetime="trxDatetime"></ion-datetime-button>
+            <ion-modal [keepContentsMounted]="true"><ng-template><ion-datetime id="trxDatetime" [(ngModel)]="date"></ion-datetime></ng-template></ion-modal>
+          </ion-item>
+
+          <ion-item class="custom-form-item" lines="none">
+            <ion-icon name="document-text-outline" slot="start" color="medium"></ion-icon>
+            <ion-textarea [placeholder]="t.NOTES_PLACEHOLDER" [(ngModel)]="notes" autoGrow="true"></ion-textarea>
+          </ion-item>
         </div>
       </ion-content>
     </ng-template>
   </ion-modal>
 
-  <ion-modal #categoryModal [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 0.9]">
+  <ion-modal #trxOptionsModal [initialBreakpoint]="0.4" [breakpoints]="[0, 0.4]">
     <ng-template>
-      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-title class="ion-text-center">{{ t.CHOOSE_CATEGORY }}</ion-title></ion-toolbar></ion-header>
-      <ion-content class="ion-padding modal-content"><ion-list class="selection-list" lines="none"><ion-item *ngFor="let cat of availableCategories" button (click)="setCategory(cat.id, cat.name, cat.icon)"><div slot="start" class="icon-box" [ngClass]="cat.colorClass"><ion-icon [name]="cat.icon"></ion-icon></div><ion-label>{{ cat.name }}</ion-label></ion-item></ion-list><div class="dashed-add-btn" (click)="openInlineCategoryForm()"><ion-icon name="add-circle-outline"></ion-icon><span>{{ t.NEW_CATEGORY }}</span></div></ion-content>
+      <ion-content class="ion-padding modal-content">
+        <div class="trx-detail-header" *ngIf="selectedTrx">
+          <div class="icon-box large-preview" [ngClass]="selectedTrx.type === 'expense' ? 'danger-box' : (selectedTrx.type === 'income' ? 'success-box' : 'tertiary-box')">
+            <ion-icon [name]="selectedTrx.type === 'transfer' ? 'swap-horizontal' : selectedTrx.categoryIcon"></ion-icon>
+          </div>
+          <h2>{{ selectedTrx.title }}</h2>
+          <h1 [ngClass]="selectedTrx.type === 'expense' ? 'color-danger' : (selectedTrx.type === 'income' ? 'color-success' : 'color-medium')">
+            {{ selectedTrx.type === 'expense' ? '-' : (selectedTrx.type === 'income' ? '+' : '') }}{{ selectedTrx.amount | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}
+          </h1>
+          <p>{{ selectedTrx.date | date:'dd MMM yyyy, HH:mm' }}</p>
+        </div>
+        <div class="trx-detail-actions">
+          <ion-button expand="block" class="modal-action-btn edit-action" (click)="editSelectedTransaction()">
+            <ion-icon name="create-outline" slot="start"></ion-icon> {{ t.EDIT }}
+          </ion-button>
+          <ion-button expand="block" fill="outline" class="modal-action-btn delete-action" (click)="deleteSelectedTransaction()">
+            <ion-icon name="trash-outline" slot="start"></ion-icon> {{ t.DELETE }}
+          </ion-button>
+        </div>
+      </ion-content>
     </ng-template>
   </ion-modal>
 
-  <ion-modal #walletModal [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 0.9]">
+  <ion-modal #categoryModal [initialBreakpoint]="0.75" [breakpoints]="[0, 0.75, 1]">
     <ng-template>
-      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-title class="ion-text-center">{{ t.CHOOSE_WALLET }}</ion-title></ion-toolbar></ion-header>
-      <ion-content class="ion-padding modal-content"><ion-list class="selection-list" lines="none"><ion-item *ngFor="let w of wallets$ | async" button (click)="setWallet(w.id, w.name, w.icon)"><div slot="start" class="icon-box" [ngClass]="w.colorClass"><ion-icon [name]="w.icon"></ion-icon></div><ion-label>{{ w.name }}</ion-label></ion-item></ion-list><div class="dashed-add-btn" (click)="openInlineWalletForm()"><ion-icon name="add-circle-outline"></ion-icon><span>{{ t.NEW_WALLET }}</span></div></ion-content>
+      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-title class="ion-text-center">{{ t.CHOOSE_CATEGORY }}</ion-title><ion-buttons slot="end"><ion-button (click)="safeDismiss(categoryModal)">{{ t.CLOSE }}</ion-button></ion-buttons></ion-toolbar></ion-header>
+      <ion-content class="ion-padding modal-content">
+        <ion-list class="selection-list">
+          <ion-item *ngFor="let cat of availableCategories" button (click)="setCategory(cat.id, cat.name, cat.icon, cat.colorClass)">
+            <div slot="start" class="icon-box" [ngClass]="cat.colorClass"><ion-icon [name]="cat.icon"></ion-icon></div>
+            <ion-label>{{ cat.name }}</ion-label>
+          </ion-item>
+        </ion-list>
+        <button class="dashed-add-btn" (click)="openInlineCategoryForm(inlineCategoryModal)"><ion-icon name="add-circle-outline"></ion-icon> {{ t.NEW_CATEGORY }}</button>
+      </ion-content>
     </ng-template>
   </ion-modal>
 
-  <ion-modal #toWalletModal [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 0.9]">
+  <ion-modal #walletModal [initialBreakpoint]="0.75" [breakpoints]="[0, 0.75, 1]">
     <ng-template>
-      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-title class="ion-text-center">{{ t.TO_WALLET }}</ion-title></ion-toolbar></ion-header>
-      <ion-content class="ion-padding modal-content"><ion-list class="selection-list" lines="none"><ion-item *ngFor="let w of wallets$ | async" button (click)="setToWallet(w.id, w.name, w.icon)"><div slot="start" class="icon-box" [ngClass]="w.colorClass"><ion-icon [name]="w.icon"></ion-icon></div><ion-label>{{ w.name }}</ion-label></ion-item></ion-list><div class="dashed-add-btn" (click)="openInlineWalletForm()"><ion-icon name="add-circle-outline"></ion-icon><span>{{ t.NEW_WALLET }}</span></div></ion-content>
+      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-title class="ion-text-center">{{ t.CHOOSE_WALLET }}</ion-title><ion-buttons slot="end"><ion-button (click)="safeDismiss(walletModal)">{{ t.CLOSE }}</ion-button></ion-buttons></ion-toolbar></ion-header>
+      <ion-content class="ion-padding modal-content">
+        <ion-list class="selection-list">
+          <ion-item *ngFor="let w of wallets$ | async" button (click)="setWallet(w.id, w.name, w.icon, w.colorClass)">
+            <div slot="start" class="icon-box" [ngClass]="w.colorClass"><ion-icon [name]="w.icon"></ion-icon></div>
+            <ion-label>{{ w.name }}</ion-label>
+          </ion-item>
+        </ion-list>
+        <button class="dashed-add-btn" (click)="openInlineWalletForm(inlineWalletModal)"><ion-icon name="add-circle-outline"></ion-icon> {{ t.NEW_WALLET }}</button>
+      </ion-content>
     </ng-template>
   </ion-modal>
 
-  <ion-modal #inlineCategoryModal [initialBreakpoint]="0.85" [breakpoints]="[0, 0.85, 1]"><ng-template><ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-buttons slot="start"><ion-button color="medium" (click)="inlineCategoryModal.dismiss()">{{ t.CANCEL }}</ion-button></ion-buttons><ion-title class="ion-text-center">{{ t.NEW_CATEGORY }}</ion-title><ion-buttons slot="end"><ion-button color="primary" (click)="saveInlineCategory()" style="font-weight: bold;">{{ t.SAVE }}</ion-button></ion-buttons></ion-toolbar></ion-header><ion-content class="ion-padding modal-content"><div class="wallet-preview"><div class="icon-box large-preview" [ngClass]="inlineCatColor"><ion-icon [name]="inlineCatIcon"></ion-icon></div></div><div class="form-details"><ion-item class="custom-form-item" lines="none"><ion-input type="text" placeholder="Nama Kategori" [(ngModel)]="inlineCatName"></ion-input></ion-item><ion-item class="custom-form-item" lines="none" button (click)="openIconPicker('category')"><ion-label>Pilih Ikon</ion-label><ion-icon name="chevron-down" slot="end" color="medium"></ion-icon></ion-item><div class="color-picker-section"><div class="color-grid"><div *ngFor="let color of availableColors" class="color-circle" [ngClass]="color" (click)="selectColor(color, 'category')" [class.selected]="inlineCatColor === color"><ion-icon name="checkmark" *ngIf="inlineCatColor === color"></ion-icon></div></div></div></div></ion-content></ng-template></ion-modal>
-  <ion-modal #inlineWalletModal [initialBreakpoint]="0.85" [breakpoints]="[0, 0.85, 1]"><ng-template><ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-buttons slot="start"><ion-button color="medium" (click)="inlineWalletModal.dismiss()">{{ t.CANCEL }}</ion-button></ion-buttons><ion-title class="ion-text-center">{{ t.NEW_WALLET }}</ion-title><ion-buttons slot="end"><ion-button color="primary" (click)="saveInlineWallet()" style="font-weight: bold;">{{ t.SAVE }}</ion-button></ion-buttons></ion-toolbar></ion-header><ion-content class="ion-padding modal-content"><div class="wallet-preview"><div class="icon-box large-preview" [ngClass]="inlineWalletColor"><ion-icon [name]="inlineWalletIcon"></ion-icon></div></div><div class="form-details"><ion-item class="custom-form-item" lines="none"><ion-input type="text" placeholder="Nama Dompet" [(ngModel)]="inlineWalletName"></ion-input></ion-item><ion-item class="custom-form-item" lines="none" button (click)="openIconPicker('wallet')"><ion-label>Pilih Ikon</ion-label><ion-icon name="chevron-down" slot="end" color="medium"></ion-icon></ion-item><div class="color-picker-section"><div class="color-grid"><div *ngFor="let color of availableColors" class="color-circle" [ngClass]="color" (click)="selectColor(color, 'wallet')" [class.selected]="inlineWalletColor === color"><ion-icon name="checkmark" *ngIf="inlineWalletColor === color"></ion-icon></div></div></div></div></ion-content></ng-template></ion-modal>
-  <ion-modal #iconModal [initialBreakpoint]="0.6" [breakpoints]="[0, 0.6, 0.9]"><ng-template><ion-content class="ion-padding"><div class="icon-grid"><div *ngFor="let icon of availableIcons" class="icon-grid-item" (click)="selectIcon(icon)"><ion-icon [name]="icon"></ion-icon></div></div></ion-content></ng-template></ion-modal>
+  <ion-modal #toWalletModal [initialBreakpoint]="0.75" [breakpoints]="[0, 0.75, 1]">
+    <ng-template>
+      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-title class="ion-text-center">{{ t.TO_WALLET }}</ion-title><ion-buttons slot="end"><ion-button (click)="safeDismiss(toWalletModal)">{{ t.CLOSE }}</ion-button></ion-buttons></ion-toolbar></ion-header>
+      <ion-content class="ion-padding modal-content">
+        <ion-list class="selection-list">
+          <ion-item *ngFor="let w of wallets$ | async" button (click)="setToWallet(w.id, w.name, w.icon, w.colorClass)">
+            <div slot="start" class="icon-box" [ngClass]="w.colorClass"><ion-icon [name]="w.icon"></ion-icon></div>
+            <ion-label>{{ w.name }}</ion-label>
+          </ion-item>
+        </ion-list>
+        <button class="dashed-add-btn" (click)="openInlineWalletForm(inlineWalletModal)"><ion-icon name="add-circle-outline"></ion-icon> {{ t.NEW_WALLET }}</button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal #inlineCategoryModal [initialBreakpoint]="0.8" [breakpoints]="[0, 0.8, 1]" (ionModalDidPresent)="focusInlineCatInput()">
+    <ng-template>
+      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-buttons slot="start"><ion-button color="medium" (click)="safeDismiss(inlineCategoryModal)">{{ t.CANCEL }}</ion-button></ion-buttons><ion-title class="ion-text-center">{{ t.NEW_CATEGORY }}</ion-title><ion-buttons slot="end"><ion-button color="primary" style="font-weight: bold;" (click)="saveInlineCategory()">{{ t.SAVE }}</ion-button></ion-buttons></ion-toolbar></ion-header>
+      <ion-content class="ion-padding modal-content">
+        <div class="wallet-preview"><div class="icon-box large-preview" [ngClass]="inlineCatColor"><ion-icon [name]="inlineCatIcon"></ion-icon></div></div>
+        <div class="prominent-name-container">
+          <ion-input #inlineCatInput class="massive-name-input" placeholder="Nama Kategori" [(ngModel)]="inlineCatName"></ion-input>
+        </div>
+        <div class="form-details">
+          <ion-item class="custom-form-item" lines="none" button (click)="openIconPicker('category', iconModal)"><ion-label>Pilih Ikon</ion-label><ion-icon name="chevron-down" slot="end" color="medium"></ion-icon></ion-item>
+          <div class="color-picker-section"><div class="color-grid"><div *ngFor="let c of availableColors" class="color-circle" [ngClass]="c" (click)="selectColor(c, 'category')" [class.selected]="inlineCatColor === c"><ion-icon name="checkmark" *ngIf="inlineCatColor === c"></ion-icon></div></div></div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal #inlineWalletModal [initialBreakpoint]="0.8" [breakpoints]="[0, 0.8, 1]" (ionModalDidPresent)="focusInlineWalletInput()">
+    <ng-template>
+      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-buttons slot="start"><ion-button color="medium" (click)="safeDismiss(inlineWalletModal)">{{ t.CANCEL }}</ion-button></ion-buttons><ion-title class="ion-text-center">{{ t.NEW_WALLET }}</ion-title><ion-buttons slot="end"><ion-button color="primary" style="font-weight: bold;" (click)="saveInlineWallet()">{{ t.SAVE }}</ion-button></ion-buttons></ion-toolbar></ion-header>
+      <ion-content class="ion-padding modal-content">
+        <div class="wallet-preview"><div class="icon-box large-preview" [ngClass]="inlineWalletColor"><ion-icon [name]="inlineWalletIcon"></ion-icon></div></div>
+        <div class="prominent-name-container">
+          <ion-input #inlineWalletInput class="massive-name-input" placeholder="Nama Dompet" [(ngModel)]="inlineWalletName"></ion-input>
+        </div>
+        <div class="form-details">
+          <ion-item class="custom-form-item" lines="none" button (click)="openIconPicker('wallet', iconModal)"><ion-label>Pilih Ikon</ion-label><ion-icon name="chevron-down" slot="end" color="medium"></ion-icon></ion-item>
+          <div class="color-picker-section"><div class="color-grid"><div *ngFor="let c of availableColors" class="color-circle" [ngClass]="c" (click)="selectColor(c, 'wallet')" [class.selected]="inlineWalletColor === c"><ion-icon name="checkmark" *ngIf="inlineWalletColor === c"></ion-icon></div></div></div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal #iconModal [initialBreakpoint]="0.6" [breakpoints]="[0, 0.6, 0.9]">
+    <ng-template>
+      <ion-content class="ion-padding modal-content">
+        <div class="icon-grid">
+          <div *ngFor="let icon of availableIcons" class="icon-grid-item" (click)="selectIcon(icon)" [class.active]="(activeIconPicker === 'category' ? inlineCatIcon : inlineWalletIcon) === icon"><ion-icon [name]="icon"></ion-icon></div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
 </ion-content>
