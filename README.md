@@ -48,6 +48,7 @@ Clone the repository and install the necessary dependencies:
 git clone [https://github.com/axlhnbi/finflow.git](https://github.com/axlhnbi/finflow.git)
 cd finflow
 npm install
+```
 
 ### 2. Run in Browser (Web Development)
 For quick UI adjustments and web-based testing with live reload:
