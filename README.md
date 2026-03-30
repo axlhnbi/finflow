@@ -48,3 +48,28 @@ Clone the repository and install the necessary dependencies:
 git clone [https://github.com/axlhnbi/finflow.git](https://github.com/axlhnbi/finflow.git)
 cd finflow
 npm install
+
+### 2. Run in Browser (Web Development)
+For quick UI adjustments and web-based testing with live reload:
+```bash
+ionic serve
+
+### 3. Run on Android (Emulator / Physical Device)
+To test the native capabilities of the application on Android:
+```bash
+# Build the web assets
+ionic build
+
+# Sync the Capacitor Android project
+npx cap sync android
+
+# Open the project in Android Studio to run or build
+npx cap open android
+
+### 4. Build for Production (Play Store Release)
+To generate the final AAB (Android App Bundle) or APK file for distribution:
+```bash
+ionic build --prod
+npx cap sync android
+
+After syncing, open Android Studio (npx cap open android), navigate to Build > Generate Signed Bundle / APK, and follow the prompts using your Keystore file.
