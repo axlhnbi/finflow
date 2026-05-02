@@ -1,6 +1,6 @@
-# FinFlow 📊
+# RinciUang 📊
 
-FinFlow is a modern mobile application for personal financial management, designed with an intuitive interface and responsive performance. This app helps users easily track their daily cash flow, monitor expenses, and manage their finances efficiently right from their fingertips.
+RinciUang is a modern mobile application for personal financial management, designed with an intuitive interface and responsive performance. This app helps users easily track their daily cash flow, monitor expenses, and manage their finances efficiently right from their fingertips.
 
 ---
 
@@ -24,11 +24,11 @@ This application is built using a modern hybrid technology ecosystem:
 
 ## 📸 Screenshots
 
-*(Replace the placeholder image links below with the actual screenshots of the FinFlow app)*
+*(Replace the placeholder image links below with the actual screenshots of the RinciUang app)*
 
 | Home Screen | Add Transaction | Financial Reports |
 | :---: | :---: | :---: |
-| <img src="https://via.placeholder.com/250x500.png?text=Home+Screen" width="200"> | <img src="https://via.placeholder.com/250x500.png?text=Transaction" width="200"> | <img src="https://via.placeholder.com/250x500.png?text=Reports" width="200"> |
+| <img src="https://seashell-gazelle-908805.hostingersite.com/img/home-screen.webp" width="200"> | <img src="https://seashell-gazelle-908805.hostingersite.com/img/add-transaction.webp" width="200"> | <img src="https://seashell-gazelle-908805.hostingersite.com/img/financial-reports.webp" width="200"> |
 
 ---
 
@@ -45,8 +45,8 @@ Make sure you have the following installed:
 ### 1. Initial Setup
 Clone the repository and install the necessary dependencies:
 ```bash
-git clone [https://github.com/axlhnbi/finflow.git](https://github.com/axlhnbi/finflow.git)
-cd finflow
+git clone [https://github.com/axlhnbi/RinciUang.git](https://github.com/axlhnbi/rinciuang.git)
+cd RinciUang
 npm install
 ```
 
