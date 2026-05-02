@@ -1,0 +1,51 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="custom-toolbar"><div class="header-title"><h2>{{ t.WALLETS }} 💳</h2><p>{{ t.WALLETS_DESC }}</p></div></ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding custom-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
+  <div class="balance-card">
+    <div class="card-content"><p>{{ t.ACTIVE_BALANCE }}</p><h1>{{ totalBalance | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}</h1></div>
+    <div class="card-decoration"><div class="circle circle-1"></div><div class="circle circle-2"></div></div>
+  </div>
+
+  <div class="wallet-section">
+    <h3 class="section-title">{{ t.WALLET_LIST }}</h3>
+    <div *ngIf="walletSummaries.length === 0" class="ion-text-center ion-padding" style="color: var(--ion-color-medium);"><p>{{ t.NO_WALLET }}</p></div>
+    <ion-list lines="none" class="wallet-list">
+      <ion-item class="wallet-item category-card" *ngFor="let wallet of walletSummaries">
+        <div slot="start" class="icon-box" [ngClass]="wallet.colorClass"><ion-icon [name]="wallet.icon"></ion-icon></div>
+        <ion-label class="wallet-label">
+          <h2>{{ wallet.name }}</h2>
+          <span class="price" [class.negative-balance]="wallet.balance < 0">{{ wallet.balance | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}</span>
+        </ion-label>
+        <div slot="end" class="action-buttons">
+          <button class="action-btn edit-btn" (click)="editWallet(wallet)"><ion-icon name="create-outline"></ion-icon></button>
+          <button class="action-btn delete-btn" (click)="deleteWallet(wallet.id)"><ion-icon name="trash-outline"></ion-icon></button>
+        </div>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed"><ion-fab-button (click)="openAddWallet()"><ion-icon name="add"></ion-icon></ion-fab-button></ion-fab>
+
+  <ion-modal #walletModal [initialBreakpoint]="0.85" [breakpoints]="[0, 0.5, 0.85, 1]" (ionModalDidPresent)="focusWalletNameInput()">
+    <ng-template>
+      <ion-header class="ion-no-border"><ion-toolbar class="modal-toolbar"><ion-buttons slot="start"><ion-button color="medium" (click)="dismissWalletModal()">{{ t.CANCEL }}</ion-button></ion-buttons><ion-title class="ion-text-center">{{ editingWalletId ? t.EDIT : t.NEW_WALLET }}</ion-title><ion-buttons slot="end"><ion-button color="primary" (click)="saveWallet()" style="font-weight: bold;">{{ t.SAVE }}</ion-button></ion-buttons></ion-toolbar></ion-header>
+      <ion-content class="ion-padding modal-content">
+        <div class="wallet-preview"><div class="icon-box large-preview" [ngClass]="walletColor"><ion-icon [name]="walletIcon"></ion-icon></div></div>
+        
+        <div class="prominent-name-container">
+          <ion-input #walletNameInput class="massive-name-input" placeholder="Nama Dompet" [(ngModel)]="walletName"></ion-input>
+        </div>
+
+        <div class="form-details">
+          <ion-item class="custom-form-item" lines="none" button (click)="openIconPicker()"><ion-label>Pilih Ikon</ion-label><ion-icon name="chevron-down" slot="end" color="medium"></ion-icon></ion-item>
+          <div class="color-picker-section"><div class="color-grid"><div *ngFor="let color of availableColors" class="color-circle" [ngClass]="color" (click)="selectColor(color)" [class.selected]="walletColor === color"><ion-icon name="checkmark" *ngIf="walletColor === color"></ion-icon></div></div></div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal #iconModal [initialBreakpoint]="0.6" [breakpoints]="[0, 0.6, 0.9]"><ng-template><ion-content class="ion-padding modal-content"><div class="icon-grid"><div *ngFor="let icon of availableIcons" class="icon-grid-item" (click)="selectIcon(icon)"><ion-icon [name]="icon"></ion-icon></div></div></ion-content></ng-template></ion-modal>
+</ion-content>

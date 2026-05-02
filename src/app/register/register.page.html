@@ -1,0 +1,58 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="transparent-toolbar">
+    <ion-buttons slot="start">
+      <ion-button *ngIf="step === 'otp'" (click)="step = 'form'" color="primary"><ion-icon name="arrow-back" slot="icon-only"></ion-icon></ion-button>
+      <ion-back-button *ngIf="step === 'form'" defaultHref="/login" text="" color="primary"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding register-content">
+  <div class="register-container">
+    
+    <div class="header-section">
+      <h1>{{ t.CREATE_ACCOUNT }}</h1>
+      <p *ngIf="step === 'form'">{{ t.CREATE_ACCOUNT_DESC }}</p>
+      <p *ngIf="step === 'otp'" style="color: var(--ion-color-primary); font-weight: bold;">{{ t.OTP_SENT }}</p>
+    </div>
+
+    <div class="form-section" *ngIf="step === 'form'">
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
+        <ion-input type="text" [placeholder]="t.FULL_NAME" [(ngModel)]="name"></ion-input>
+      </ion-item>
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
+        <ion-input type="email" [placeholder]="t.EMAIL_ADDR" [(ngModel)]="email"></ion-input>
+      </ion-item>
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
+        <ion-input [type]="showPassword ? 'text' : 'password'" [placeholder]="t.PASSWORD" [(ngModel)]="password"></ion-input>
+        <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" slot="end" color="medium" (click)="togglePassword()" style="cursor: pointer; padding-left: 10px;"></ion-icon>
+      </ion-item>
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="shield-checkmark-outline" slot="start" color="medium"></ion-icon>
+        <ion-input [type]="showConfirmPassword ? 'text' : 'password'" [placeholder]="t.CONFIRM_PWD" [(ngModel)]="confirmPassword"></ion-input>
+        <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'" slot="end" color="medium" (click)="toggleConfirmPassword()" style="cursor: pointer; padding-left: 10px;"></ion-icon>
+      </ion-item>
+      <ion-button expand="block" class="register-btn" shape="round" (click)="requestOtp()">
+        Lanjutkan
+      </ion-button>
+    </div>
+
+    <div class="form-section" *ngIf="step === 'otp'">
+      <ion-item class="custom-input" lines="none">
+        <ion-icon name="keypad-outline" slot="start" color="primary"></ion-icon>
+        <ion-input type="number" [placeholder]="t.OTP_INPUT" [(ngModel)]="otp" maxlength="6"></ion-input>
+      </ion-item>
+      <ion-button expand="block" class="register-btn" shape="round" (click)="verifyAndRegister()">
+        {{ t.VERIFY_OTP }}
+      </ion-button>
+    </div>
+
+    <div class="footer-section">
+      <p>{{ t.HAVE_ACCOUNT }} <a routerLink="/login">{{ t.LOGIN_HERE }}</a></p>
+    </div>
+
+  </div>
+</ion-content>

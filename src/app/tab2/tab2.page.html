@@ -1,0 +1,28 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="custom-toolbar"><div class="header-title"><h2>{{ t.RECAP }} 📊</h2><p>{{ t.RECAP_DESC }}</p></div></ion-toolbar>
+  <ion-toolbar class="segment-toolbar"><ion-segment [(ngModel)]="recapType" (ionChange)="onFilterChange()" mode="ios" class="custom-segment" color="primary"><ion-segment-button value="expense"><ion-label>{{ t.EXPENSE }}</ion-label></ion-segment-button><ion-segment-button value="income"><ion-label>{{ t.INCOME }}</ion-label></ion-segment-button></ion-segment></ion-toolbar>
+  <ion-toolbar class="segment-toolbar" style="padding-top: 0;"><ion-segment [(ngModel)]="selectedPeriod" (ionChange)="onFilterChange()" mode="ios" class="custom-segment"><ion-segment-button value="daily"><ion-label>{{ t.DAILY }}</ion-label></ion-segment-button><ion-segment-button value="weekly"><ion-label>{{ t.WEEKLY }}</ion-label></ion-segment-button><ion-segment-button value="monthly"><ion-label>{{ t.MONTHLY }}</ion-label></ion-segment-button></ion-segment></ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding custom-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
+  <div class="chart-container">
+   <div class="chart-header"><h3>{{ t.TOTAL }} {{ recapType === 'expense' ? t.EXPENSE : t.INCOME }}</h3><h1 class="total-amount" [ngClass]="recapType === 'expense' ? 'color-danger' : 'color-success'">{{ totalAmount | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}</h1></div>
+    <div style="position: relative; height:30vh; width:100%"><canvas id="pieChart"></canvas></div>
+  </div>
+  <div class="category-section">
+    <h3 class="section-title">{{ t.CAT_DETAIL }}</h3>
+    <div *ngIf="categorySummary.length === 0" class="ion-text-center ion-padding" style="color: var(--ion-color-medium);"><p>{{ t.NO_DATA }}</p></div>
+    <ion-list lines="none" class="category-list">
+      <ion-item class="category-item" *ngFor="let cat of categorySummary">
+        <div slot="start" class="icon-box" [ngClass]="cat.colorClass"><ion-icon [name]="cat.icon"></ion-icon></div>
+        <ion-label class="category-label">
+          <h2>{{ cat.name }}</h2>
+          <ng-container *ngIf="recapType === 'expense' && cat.budget > 0; else noLimit"><ion-progress-bar class="budget-progress" [value]="cat.amount / cat.budget" [color]="(cat.amount / cat.budget) > 0.9 ? 'danger' : 'primary'"></ion-progress-bar><p>{{ cat.amount | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }} / {{ cat.budget | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}</p></ng-container>
+          <ng-template #noLimit><p>{{ cat.percentage | number:'1.0-1':(locale$ | async) || 'id-ID' }}%</p></ng-template>
+        </ion-label>
+        <div slot="end" class="amount-detail" *ngIf="recapType === 'income' || !cat.budget || cat.budget === 0"><span class="price">{{ cat.amount | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}</span></div>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>
