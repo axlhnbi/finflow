@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://white-hamster-537448.hostingersite.com/api/'
+  apiUrl: '[your backend url]'
 };
 
 /*
