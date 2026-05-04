@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { UtilityService } from '../../services/utility.service';
 import { ExpenseService } from '../../services/expense.service';
 import { TranslationService } from '../../services/translation.service';
+import { UserService } from 'src/services/user.service';
 
 @Component({
   selector: 'app-login',
@@ -31,7 +32,8 @@ export class LoginPage implements OnInit {
     private http: HttpClient,
     private utility: UtilityService,
     private expenseService: ExpenseService,
-    private translationService: TranslationService
+    private translationService: TranslationService,
+    private userServ: UserService
   ) { }
 
   ngOnInit() {
@@ -55,14 +57,16 @@ export class LoginPage implements OnInit {
     }
   }
 
-  async doLogin() {
+  async doLogin(){
     if (!this.email || !this.password) {
       this.utility.showToast(this.t.LOGIN_ERR_EMPTY, 'danger');
       return;
     }
+
     await this.utility.showLoading(this.t.LOGIN_LOADING);
-    this.http.post<any>(`${environment.apiUrl}auth.php?action=login`, { email: this.email, password: this.password }).subscribe({
-      next: async (res) => {
+
+    this.userServ.login({ email: this.email, password:this.password }).subscribe({
+      next: async res => {
         await this.utility.hideLoading();
         if (res.status === 200 && res.data) {
           localStorage.setItem('user_id', res.data.id);
@@ -74,16 +78,16 @@ export class LoginPage implements OnInit {
             localStorage.setItem('user_avatar', 'assets/nopic.svg');
           }
           await this.expenseService.initDatabase();
-          this.router.navigate(['/tabs/tab1'], { replaceUrl: true });
-        } else {
+          this.router.navigate(['/tabs/tab1'], { replaceUrl: true }); 
+        }else{
           this.utility.showToast(res.message || this.t.LOGIN_ERR_FAILED, 'danger');
         }
       },
-      error: async (err) => {
-        await this.utility.hideLoading();
-        this.utility.showToast(err.error?.message || this.t.LOGIN_ERR_NETWORK, 'danger');
+      error: async err => {
+        this.utility.hideLoading();
+        this.utility.showToast(err.error.message || this.t.LOGIN_ERR_FAILED, 'danger');
       }
-    });
+    })
   }
 
   async requestResetOtp() {
